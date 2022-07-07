@@ -5,6 +5,8 @@
 using System;
 #if WINUI || UWP
 using Windows.Foundation;
+#elif Avalonia
+using Avalonia;
 #else
 using System.Windows;
 #endif

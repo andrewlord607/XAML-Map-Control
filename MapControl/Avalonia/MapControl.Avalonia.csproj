@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>MapControl</RootNamespace>
+        <AssemblyTitle>XAML Map Control Library for Avalonia</AssemblyTitle>
+        <Product>XAML Map Control</Product>
+        <Version>7.2.0</Version>
+        <Authors>Clemens Fischer</Authors>
+        <Copyright>Copyright © 2022 Clemens Fischer</Copyright>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\..\MapControl.snk</AssemblyOriginatorKeyFile>
+        <DelaySign>false</DelaySign>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <PackageId>XAML.MapControl</PackageId>
+        <DefineConstants>Avalonia</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\..\MapControl.snk" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\Shared\*.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="PushpinBorder.xaml" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="0.10.15" />
+        <PackageReference Include="Avalonia.Desktop" Version="0.10.15" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="0.10.15" />
+    </ItemGroup>
+
+</Project>

@@ -8,6 +8,8 @@ using Windows.UI.Text;
 #elif UWP
 using Windows.UI.Text;
 using Windows.UI.Xaml.Media;
+#elif Avalonia
+using Avalonia;
 #else
 using System.Windows;
 using System.Windows.Media;

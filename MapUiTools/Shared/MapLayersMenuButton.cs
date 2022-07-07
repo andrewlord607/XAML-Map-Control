@@ -11,6 +11,9 @@ using Microsoft.UI.Xaml.Markup;
 #elif UWP
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Markup;
+#elif Avalonia
+using Avalonia;
+using Avalonia.Interactivity;
 #else
 using System.Windows;
 using System.Windows.Markup;
@@ -45,9 +48,13 @@ namespace MapControl.UiTools
             ((INotifyCollectionChanged)MapOverlays).CollectionChanged += (s, e) => InitializeMenu();
         }
 
+#if !Avalonia
         public static readonly DependencyProperty MapProperty = DependencyProperty.Register(
             nameof(Map), typeof(MapBase), typeof(MapLayersMenuButton),
             new PropertyMetadata(null, (o, e) => ((MapLayersMenuButton)o).InitializeMenu()));
+#else
+        public static readonly AvaloniaProperty MapProperty = AvaloniaProperty.Register<MapBase, Map>(nameof(Map), )
+#endif
 
         public MapBase Map
         {

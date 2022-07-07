@@ -13,6 +13,8 @@ using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
+#elif Avalonia
+using Avalonia;
 #else
 using System.Windows;
 using System.Windows.Media;

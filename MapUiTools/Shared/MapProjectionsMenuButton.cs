@@ -11,6 +11,8 @@ using Microsoft.UI.Xaml.Markup;
 #elif UWP
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Markup;
+#elif Avalonia
+using Avalonia.Interactivity;
 #else
 using System.Windows;
 using System.Windows.Markup;

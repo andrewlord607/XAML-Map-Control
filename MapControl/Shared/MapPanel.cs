@@ -1,4 +1,4 @@
-﻿// XAML Map Control - https://github.com/ClemensFischer/XAML-Map-Control
+// XAML Map Control - https://github.com/ClemensFischer/XAML-Map-Control
 // © 2022 Clemens Fischer
 // Licensed under the Microsoft Public License (Ms-PL)
 
@@ -16,6 +16,11 @@ using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+#elif Avalonia
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
+using Avalonia.Layout;
 #else
 using System.Windows;
 using System.Windows.Controls;
@@ -38,8 +43,13 @@ namespace MapControl
     /// </summary>
     public partial class MapPanel : Panel, IMapElement
     {
+#if !Avalonia
         public static readonly DependencyProperty AutoCollapseProperty = DependencyProperty.RegisterAttached(
             "AutoCollapse", typeof(bool), typeof(MapPanel), new PropertyMetadata(false));
+#else
+        public static readonly AvaloniaProperty<bool> AutoCollapseProperty =
+            AvaloniaProperty.Register<MapPanel, bool>("AutoCollapse");
+#endif
 
         private MapBase parentMap;
 
@@ -53,7 +63,11 @@ namespace MapControl
         /// Gets a value that controls whether an element's Visibility is automatically
         /// set to Collapsed when it is located outside the visible viewport area.
         /// </summary>
+#if !Avalonia
         public static bool GetAutoCollapse(FrameworkElement element)
+#else
+        public static bool GetAutoCollapse(Control element)
+#endif
         {
             return (bool)element.GetValue(AutoCollapseProperty);
         }
@@ -61,7 +75,11 @@ namespace MapControl
         /// <summary>
         /// Sets the AutoCollapse property.
         /// </summary>
+#if !Avalonia
         public static void SetAutoCollapse(FrameworkElement element, bool value)
+#else
+        public static void SetAutoCollapse(Control element, bool value)
+#endif
         {
             element.SetValue(AutoCollapseProperty, value);
         }
@@ -69,7 +87,11 @@ namespace MapControl
         /// <summary>
         /// Gets the geodetic Location of an element.
         /// </summary>
+#if !Avalonia
         public static Location GetLocation(FrameworkElement element)
+#else
+        public static Location GetLocation(Control element)
+#endif
         {
             return (Location)element.GetValue(LocationProperty);
         }
@@ -77,7 +99,11 @@ namespace MapControl
         /// <summary>
         /// Sets the geodetic Location of an element.
         /// </summary>
+#if !Avalonia
         public static void SetLocation(FrameworkElement element, Location value)
+#else
+        public static void SetLocation(Control element, Location value)
+#endif
         {
             element.SetValue(LocationProperty, value);
         }
@@ -85,7 +111,11 @@ namespace MapControl
         /// <summary>
         /// Gets the BoundingBox of an element.
         /// </summary>
+#if !Avalonia
         public static BoundingBox GetBoundingBox(FrameworkElement element)
+#else
+        public static BoundingBox GetBoundingBox(Control element)
+#endif
         {
             return (BoundingBox)element.GetValue(BoundingBoxProperty);
         }
@@ -93,7 +123,11 @@ namespace MapControl
         /// <summary>
         /// Sets the BoundingBox of an element.
         /// </summary>
+#if !Avalonia
         public static void SetBoundingBox(FrameworkElement element, BoundingBox value)
+#else
+        public static void SetBoundingBox(Control element, BoundingBox value)
+#endif
         {
             element.SetValue(BoundingBoxProperty, value);
         }
@@ -101,7 +135,11 @@ namespace MapControl
         /// <summary>
         /// Gets the position of an element in view coordinates.
         /// </summary>
+#if !Avalonia
         public static Point? GetViewPosition(FrameworkElement element)
+#else
+        public static Point? GetViewPosition(Control element)
+#endif
         {
             return (Point?)element.GetValue(ViewPositionProperty);
         }
@@ -193,7 +231,11 @@ namespace MapControl
         {
             availableSize = new Size(double.PositiveInfinity, double.PositiveInfinity);
 
+#if !Avalonia
             foreach (var element in Children.OfType<FrameworkElement>())
+#else
+            foreach (var element in Children.OfType<Control>())
+#endif
             {
                 element.Measure(availableSize);
             }
@@ -205,7 +247,11 @@ namespace MapControl
         {
             if (parentMap != null)
             {
+#if !Avalonia
                 foreach (var element in Children.OfType<FrameworkElement>())
+#else
+                foreach (var element in Children.OfType<Control>())
+#endif
                 {
                     var position = GetViewPosition(GetLocation(element));
 
@@ -215,11 +261,19 @@ namespace MapControl
                     {
                         if (position.HasValue && IsOutsideViewport(position.Value))
                         {
+#if !Avalonia
                             element.SetValue(VisibilityProperty, Visibility.Collapsed);
+#else
+                            element.SetValue(IsVisibleProperty, false);
+#endif
                         }
                         else
                         {
+#if !Avalonia
                             element.ClearValue(VisibilityProperty);
+#else
+                            element.ClearValue(IsVisibleProperty);
+#endif
                         }
                     }
 
@@ -227,7 +281,11 @@ namespace MapControl
                     {
                         if (position.HasValue)
                         {
+#if !Avalonia
                             ArrangeElement(element, position.Value);
+#else
+                            ArrangeElement(element, position.Value);
+#endif
                         }
                         else
                         {
@@ -255,11 +313,20 @@ namespace MapControl
 
         private bool IsOutsideViewport(Point point)
         {
+            #if !Avalonia
             return point.X < 0d || point.X > parentMap.RenderSize.Width
                 || point.Y < 0d || point.Y > parentMap.RenderSize.Height;
+            #else
+            return point.X < 0d || point.X > parentMap.Bounds.Size.Width
+                || point.Y < 0d || point.Y > parentMap.Bounds.Size.Height;
+            #endif
         }
 
+#if !Avalonia
         private static void ArrangeElement(FrameworkElement element, ViewRect rect)
+#else
+        private static void ArrangeElement(Control element, ViewRect rect)
+#endif
         {
             element.Width = rect.Width;
             element.Height = rect.Height;
@@ -274,22 +341,38 @@ namespace MapControl
             {
                 rotateTransform = new RotateTransform { Angle = rect.Rotation };
                 element.RenderTransform = rotateTransform;
+#if !Avalonia
                 element.RenderTransformOrigin = new Point(0.5, 0.5);
+#else
+                element.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+#endif
             }
         }
 
+#if !Avalonia
         private static void ArrangeElement(FrameworkElement element, Point position)
+#else
+        private static void ArrangeElement(Control element, Point position)
+#endif
         {
             var rect = new Rect(position, element.DesiredSize);
 
             switch (element.HorizontalAlignment)
             {
                 case HorizontalAlignment.Center:
+#if !Avalonia
                     rect.X -= rect.Width / 2d;
+#else
+                    rect = rect.WithX(-rect.Width / 2d);
+#endif
                     break;
 
                 case HorizontalAlignment.Right:
+#if !Avalonia
                     rect.X -= rect.Width;
+#else
+                    rect = rect.WithX(-rect.Width);
+#endif
                     break;
 
                 default:
@@ -299,11 +382,19 @@ namespace MapControl
             switch (element.VerticalAlignment)
             {
                 case VerticalAlignment.Center:
+#if !Avalonia
                     rect.Y -= rect.Height / 2d;
+#else
+                    rect = rect.WithY(-rect.Height / 2d);
+#endif
                     break;
 
                 case VerticalAlignment.Bottom:
+#if !Avalonia
                     rect.Y -= rect.Height;
+#else
+                    rect = rect.WithY(-rect.Height);
+#endif
                     break;
 
                 default:
@@ -313,22 +404,38 @@ namespace MapControl
             ArrangeElement(element, rect);
         }
 
+#if !Avalonia
         private static void ArrangeElement(FrameworkElement element, Size parentSize)
+#else
+        private static void ArrangeElement(Control element, Size parentSize)
+#endif
         {
             var rect = new Rect(new Point(), element.DesiredSize);
 
             switch (element.HorizontalAlignment)
             {
                 case HorizontalAlignment.Center:
+#if !Avalonia
                     rect.X = (parentSize.Width - rect.Width) / 2d;
+#else
+                    rect = rect.WithX((parentSize.Width - rect.Width) / 2d);
+#endif
                     break;
 
                 case HorizontalAlignment.Right:
+#if !Avalonia
                     rect.X = parentSize.Width - rect.Width;
+#else
+                    rect = rect.WithX(parentSize.Width - rect.Width);
+#endif
                     break;
 
                 case HorizontalAlignment.Stretch:
+#if !Avalonia
                     rect.Width = parentSize.Width;
+#else
+                    rect = rect.WithWidth(parentSize.Width);
+#endif
                     break;
 
                 default:
@@ -338,15 +445,27 @@ namespace MapControl
             switch (element.VerticalAlignment)
             {
                 case VerticalAlignment.Center:
+#if !Avalonia
                     rect.Y = (parentSize.Height - rect.Height) / 2d;
+#else
+                    rect = rect.WithY((parentSize.Height - rect.Height) / 2d);
+#endif
                     break;
 
                 case VerticalAlignment.Bottom:
+#if !Avalonia
                     rect.Y = parentSize.Height - rect.Height;
+#else
+                    rect = rect.WithY(parentSize.Height - rect.Height);
+#endif
                     break;
 
                 case VerticalAlignment.Stretch:
+#if !Avalonia
                     rect.Height = parentSize.Height;
+#else
+                    rect = rect.WithHeight(parentSize.Height);
+#endif
                     break;
 
                 default:
@@ -356,20 +475,36 @@ namespace MapControl
             ArrangeElement(element, rect);
         }
 
+#if !Avalonia
         private static void ArrangeElement(FrameworkElement element, Rect rect)
+#else
+        private static void ArrangeElement(Control element, Rect rect)
+#endif
         {
             if (element.UseLayoutRounding)
             {
+#if !Avalonia
                 rect.X = Math.Round(rect.X);
                 rect.Y = Math.Round(rect.Y);
                 rect.Width = Math.Round(rect.Width);
                 rect.Height = Math.Round(rect.Height);
+#else
+                rect = new Rect(
+                    Math.Round(rect.X),
+                    Math.Round(rect.Y),
+                    Math.Round(rect.Width),
+                    Math.Round(rect.Height));
+#endif
             }
 
             element.Arrange(rect);
         }
 
+#if !Avalonia
         private static void ParentMapPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+#else
+        private static void ParentMapPropertyChanged(MapPanel obj, AvaloniaPropertyChangedEventArgs e)
+#endif
         {
             if (obj is IMapElement mapElement)
             {
