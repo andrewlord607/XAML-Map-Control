@@ -18,11 +18,13 @@ namespace MapControl
         private static readonly AvaloniaProperty<Point?> ViewPositionProperty = AvaloniaProperty.RegisterAttached<MapPanel, Point?>(
             "ViewPosition", typeof(MapPanel));
 
+#if Avalonia
         static MapPanel()
         {
             AffectsArrange<MapPanel>(LocationProperty, BoundingBoxProperty);
             ParentMapProperty.Changed.AddClassHandler<MapPanel>(ParentMapPropertyChanged);
         }
+#endif
 
         public MapPanel()
         {

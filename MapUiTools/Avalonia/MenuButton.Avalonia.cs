@@ -4,7 +4,6 @@ using Avalonia.Styling;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Avalonia.Controls.Primitives;
 
 namespace MapControl.UiTools
 {
@@ -15,7 +14,6 @@ namespace MapControl.UiTools
         protected MenuButton(string icon)
         {
             Content = icon;
-            AdornerLayer
             Click += (_, _) => ContextMenu.Open();
         }
 

@@ -1,4 +1,4 @@
-﻿// XAML Map Control - https://github.com/ClemensFischer/XAML-Map-Control
+// XAML Map Control - https://github.com/ClemensFischer/XAML-Map-Control
 // © 2022 Clemens Fischer
 // Licensed under the Microsoft Public License (Ms-PL)
 
@@ -14,7 +14,13 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 #elif Avalonia
+using System.Reactive.Linq;
 using Avalonia;
+using Avalonia.Media;
+using Avalonia.Controls;
+using Avalonia.Animation.Easings;
+using Avalonia.Animation;
+using Avalonia.Styling;
 #else
 using System.Windows;
 using System.Windows.Media;
@@ -40,37 +46,112 @@ namespace MapControl
     {
         public static TimeSpan ImageFadeDuration { get; set; } = TimeSpan.FromSeconds(0.1);
 
+#if !Avalonia
         public static readonly DependencyProperty MapLayerProperty = DependencyProperty.Register(
             nameof(MapLayer), typeof(UIElement), typeof(MapBase),
             new PropertyMetadata(null, (o, e) => ((MapBase)o).MapLayerPropertyChanged((UIElement)e.OldValue, (UIElement)e.NewValue)));
+#else
+        public static readonly AvaloniaProperty<Control> MapLayerProperty = AvaloniaProperty.Register<MapBase, Control>(
+            nameof(MapLayer));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty MapProjectionProperty = DependencyProperty.Register(
             nameof(MapProjection), typeof(MapProjection), typeof(MapBase),
             new PropertyMetadata(new WebMercatorProjection(), (o, e) => ((MapBase)o).MapProjectionPropertyChanged((MapProjection)e.NewValue)));
+#else
+        public static readonly AvaloniaProperty<MapProjection> MapProjectionProperty = AvaloniaProperty.Register<MapBase, MapProjection>(
+            nameof(MapProjection), new WebMercatorProjection());
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty ProjectionCenterProperty = DependencyProperty.Register(
             nameof(ProjectionCenter), typeof(Location), typeof(MapBase),
             new PropertyMetadata(null, (o, e) => ((MapBase)o).ProjectionCenterPropertyChanged()));
+#else
+        public static readonly AvaloniaProperty<Location> ProjectionCenterProperty = AvaloniaProperty.Register<MapBase, Location>(
+            nameof(ProjectionCenter));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty MinZoomLevelProperty = DependencyProperty.Register(
             nameof(MinZoomLevel), typeof(double), typeof(MapBase),
             new PropertyMetadata(1d, (o, e) => ((MapBase)o).MinZoomLevelPropertyChanged((double)e.NewValue)));
+#else
+        public static readonly AvaloniaProperty<double> MinZoomLevelProperty = AvaloniaProperty.Register<MapBase, double>(
+            nameof(MinZoomLevel), 1d);
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty MaxZoomLevelProperty = DependencyProperty.Register(
             nameof(MaxZoomLevel), typeof(double), typeof(MapBase),
             new PropertyMetadata(20d, (o, e) => ((MapBase)o).MaxZoomLevelPropertyChanged((double)e.NewValue)));
+#else
+        public static readonly AvaloniaProperty<double> MaxZoomLevelProperty =
+            AvaloniaProperty.Register<MapBase, double>(
+                nameof(MaxZoomLevel), 20d);
+#endif
 
+
+#if !Avalonia
         public static readonly DependencyProperty AnimationDurationProperty = DependencyProperty.Register(
             nameof(AnimationDuration), typeof(TimeSpan), typeof(MapBase),
             new PropertyMetadata(TimeSpan.FromSeconds(0.3)));
+#else
+        public static readonly AvaloniaProperty<TimeSpan> AnimationDurationProperty = AvaloniaProperty.Register<MapBase, TimeSpan>(
+            nameof(AnimationDuration), TimeSpan.FromSeconds(0.3));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty AnimationEasingFunctionProperty = DependencyProperty.Register(
             nameof(AnimationEasingFunction), typeof(EasingFunctionBase), typeof(MapBase),
             new PropertyMetadata(new QuadraticEase { EasingMode = EasingMode.EaseOut }));
+#else
+        public static readonly AvaloniaProperty<Easing> AnimationEasingFunctionProperty = AvaloniaProperty.Register<MapBase, Easing>(
+            nameof(AnimationEasingFunction), new QuadraticEaseOut());
+#endif
 
+#if Avalonia
+        static MapBase()
+        {
+            MapLayerProperty.Changed.AddClassHandler<MapBase>((x, args) =>
+                x.MapLayerPropertyChanged((Control)args.OldValue, (Control)args.NewValue));
+            MapProjectionProperty.Changed.AddClassHandler<MapBase>((o, e) =>
+                o.MapProjectionPropertyChanged((MapProjection)e.NewValue));
+            ProjectionCenterProperty.Changed.AddClassHandler<MapBase>((o, e) => o.ProjectionCenterPropertyChanged());
+            MinZoomLevelProperty.Changed.AddClassHandler<MapBase>((o, e) =>
+                o.MinZoomLevelPropertyChanged((double)e.NewValue));
+            MaxZoomLevelProperty.Changed.AddClassHandler<MapBase>((o, e) =>
+                o.MaxZoomLevelPropertyChanged((double)e.NewValue));
+
+            CenterProperty.Changed.AddClassHandler<MapBase>((o, e) =>
+                ((MapBase)o).CenterPropertyChanged((Location)e.NewValue));
+
+            ClipToBoundsProperty.OverrideMetadata(typeof(MapBase), new StyledPropertyMetadata<bool>(true));
+
+            BoundsProperty.Changed.AddClassHandler<MapBase>((o, _) =>
+            {
+                o.ResetTransformCenter();
+                o.UpdateTransform();
+            });
+
+            CenterProperty.Changed.AddClassHandler<MapBase>((o, e) =>
+            {
+                var center = (Point)e.NewValue;
+                o.CenterPointPropertyChanged(new Location(center.Y, center.X));
+            });
+        }
+#endif
+
+#if!Avalonia
         private PointAnimation centerAnimation;
         private DoubleAnimation zoomLevelAnimation;
         private DoubleAnimation headingAnimation;
+#else
+        private Animation centerAnimation;
+        private Animation zoomLevelAnimation;
+        private Animation headingAnimation;
+#endif
         private Location transformCenter;
         private Point viewCenter;
         private double centerLongitude;
@@ -96,11 +177,19 @@ namespace MapControl
         /// If the layer implements IMapLayer (like MapTileLayer or MapImageLayer), its (non-null) MapBackground
         /// and MapForeground property values are used for the MapBase Background and Foreground properties.
         /// </summary>
+#if !Avalonia
         public UIElement MapLayer
         {
             get { return (UIElement)GetValue(MapLayerProperty); }
             set { SetValue(MapLayerProperty, value); }
         }
+#else
+        public Control MapLayer
+        {
+            get { return (Control)GetValue(MapLayerProperty); }
+            set { SetValue(MapLayerProperty, value); }
+        }
+#endif
 
         /// <summary>
         /// Gets or sets the MapProjection used by the map control.
@@ -211,11 +300,20 @@ namespace MapControl
         /// Gets or sets the EasingFunction of the Center, ZoomLevel and Heading animations.
         /// The default value is a QuadraticEase with EasingMode.EaseOut.
         /// </summary>
+
+#if !Avalonia
         public EasingFunctionBase AnimationEasingFunction
         {
             get { return (EasingFunctionBase)GetValue(AnimationEasingFunctionProperty); }
             set { SetValue(AnimationEasingFunctionProperty, value); }
         }
+#else
+        public Easing AnimationEasingFunction
+        {
+            get { return (Easing)GetValue(AnimationEasingFunctionProperty); }
+            set { SetValue(AnimationEasingFunctionProperty, value); }
+        }
+#endif
 
         /// <summary>
         /// Gets the scaling factor from cartesian map coordinates to view coordinates,
@@ -267,10 +365,17 @@ namespace MapControl
             var p3 = ViewTransform.ViewToMap(new Point(rect.X + rect.Width, rect.Y));
             var p4 = ViewTransform.ViewToMap(new Point(rect.X + rect.Width, rect.Y + rect.Height));
 
+#if !Avalonia
             rect.X = Math.Min(p1.X, Math.Min(p2.X, Math.Min(p3.X, p4.X)));
             rect.Y = Math.Min(p1.Y, Math.Min(p2.Y, Math.Min(p3.Y, p4.Y)));
             rect.Width = Math.Max(p1.X, Math.Max(p2.X, Math.Max(p3.X, p4.X))) - rect.X;
             rect.Height = Math.Max(p1.Y, Math.Max(p2.Y, Math.Max(p3.Y, p4.Y))) - rect.Y;
+#else
+            rect = new Rect(Math.Min(p1.X, Math.Min(p2.X, Math.Min(p3.X, p4.X))),
+                Math.Min(p1.Y, Math.Min(p2.Y, Math.Min(p3.Y, p4.Y))),
+                Math.Max(p1.X, Math.Max(p2.X, Math.Max(p3.X, p4.X))) - rect.X,
+                Math.Max(p1.Y, Math.Max(p2.Y, Math.Max(p3.Y, p4.Y))) - rect.Y);
+#endif
 
             return MapProjection.RectToBoundingBox(rect);
         }
@@ -282,7 +387,11 @@ namespace MapControl
         public void SetTransformCenter(Point center)
         {
             transformCenter = ViewToLocation(center);
+#if !Avalonia
             viewCenter = transformCenter != null ? center : new Point(RenderSize.Width / 2d, RenderSize.Height / 2d);
+#else
+            viewCenter = transformCenter != null ? center : new Point(Bounds.Width / 2d, Bounds.Height / 2d);
+#endif
         }
 
         /// <summary>
@@ -291,7 +400,11 @@ namespace MapControl
         public void ResetTransformCenter()
         {
             transformCenter = null;
+#if !Avalonia
             viewCenter = new Point(RenderSize.Width / 2d, RenderSize.Height / 2d);
+#else
+            viewCenter = new Point(Bounds.Width / 2d, Bounds.Height / 2d);
+#endif
         }
 
         /// <summary>
@@ -378,8 +491,12 @@ namespace MapControl
 
             if (targetCenter != null)
             {
+#if  !Avalonia
                 var scale = Math.Min(RenderSize.Width / rect.Width, RenderSize.Height / rect.Height);
 
+#else
+                var scale = Math.Min(Bounds.Width / rect.Width, Bounds.Height / rect.Height);
+#endif
                 TargetZoomLevel = ViewTransform.ScaleToZoomLevel(scale);
                 TargetCenter = targetCenter;
                 TargetHeading = 0d;
@@ -402,7 +519,11 @@ namespace MapControl
             return longitude;
         }
 
+#if !Avalonia
         private void MapLayerPropertyChanged(UIElement oldLayer, UIElement newLayer)
+#else
+        private void MapLayerPropertyChanged(Control oldLayer, Control newLayer)
+#endif
         {
             if (oldLayer != null)
             {
@@ -466,7 +587,11 @@ namespace MapControl
             UpdateTransform();
         }
 
+#if !Avalonia
         private void AdjustCenterProperty(DependencyProperty property, ref Location center)
+#else
+        private void AdjustCenterProperty(AvaloniaProperty property, ref Location center)
+#endif
         {
             var c = center;
 
@@ -511,10 +636,12 @@ namespace MapControl
 
                 if (!targetCenter.Equals(Center))
                 {
+#if !Avalonia
                     if (centerAnimation != null)
                     {
                         centerAnimation.Completed -= CenterAnimationCompleted;
                     }
+
 
                     centerAnimation = new PointAnimation
                     {
@@ -527,10 +654,32 @@ namespace MapControl
                     centerAnimation.Completed += CenterAnimationCompleted;
 
                     this.BeginAnimation(CenterPointProperty, centerAnimation);
+#else
+                    centerAnimation = new Animation
+                    {
+                        Duration = AnimationDuration,
+                        Easing = AnimationEasingFunction,
+                        Children =
+                        {
+                            new KeyFrame
+                            {
+                                KeyTime = TimeSpan.Zero,
+                                Setters = { new Setter {Property = CenterProperty, Value = new Point(Center.Longitude, Center.Latitude)} }
+                            },
+                            new KeyFrame
+                            {
+                                KeyTime = AnimationDuration,
+                                Setters = { new Setter {Property = CenterProperty, Value = new Point(ConstrainedLongitude(targetCenter.Longitude), targetCenter.Latitude)} }
+                            }
+                        }
+                    };
+                    centerAnimation.RunAsync(this, null);
+#endif
                 }
             }
         }
 
+#if !Avalonia
         private void CenterAnimationCompleted(object sender, object e)
         {
             if (centerAnimation != null)
@@ -541,6 +690,7 @@ namespace MapControl
                 this.BeginAnimation(CenterPointProperty, null);
             }
         }
+#endif
 
         private void CenterPointPropertyChanged(Location center)
         {
@@ -550,6 +700,7 @@ namespace MapControl
                 UpdateTransform();
             }
         }
+
 
         private void MinZoomLevelPropertyChanged(double minZoomLevel)
         {
@@ -581,7 +732,11 @@ namespace MapControl
             }
         }
 
+#if !Avalonia
         private void AdjustZoomLevelProperty(DependencyProperty property, ref double zoomLevel)
+#else
+        private void AdjustZoomLevelProperty(AvaloniaProperty property, ref double zoomLevel)
+#endif
         {
             if (zoomLevel < MinZoomLevel || zoomLevel > MaxZoomLevel)
             {
@@ -613,6 +768,7 @@ namespace MapControl
 
                 if (targetZoomLevel != ZoomLevel)
                 {
+#if !Avalonia
                     if (zoomLevelAnimation != null)
                     {
                         zoomLevelAnimation.Completed -= ZoomLevelAnimationCompleted;
@@ -628,6 +784,23 @@ namespace MapControl
                     zoomLevelAnimation.Completed += ZoomLevelAnimationCompleted;
 
                     this.BeginAnimation(ZoomLevelProperty, zoomLevelAnimation);
+#else
+                    zoomLevelAnimation = new Animation
+                    {
+                        Easing = AnimationEasingFunction,
+                        Duration = AnimationDuration,
+                        Children =
+                        {
+                            new KeyFrame
+                            {
+                                KeyTime = AnimationDuration,
+                                Setters = { new Setter {Property = ZoomLevelProperty, Value = targetZoomLevel} }
+                            }
+                        }
+                    };
+                    zoomLevelAnimation.Apply(this, null, Observable.Return(true),
+                        () => ZoomLevelAnimationCompleted(null, null));
+#endif
                 }
             }
         }
@@ -639,14 +812,20 @@ namespace MapControl
                 SetValueInternal(ZoomLevelProperty, TargetZoomLevel);
                 UpdateTransform(true);
 
+#if !Avalonia
                 zoomLevelAnimation.Completed -= ZoomLevelAnimationCompleted;
                 zoomLevelAnimation = null;
 
                 this.BeginAnimation(ZoomLevelProperty, null);
+#endif
             }
         }
 
+#if !Avalonia
         private void AdjustHeadingProperty(DependencyProperty property, ref double heading)
+#else
+        private void AdjustHeadingProperty(AvaloniaProperty property, ref double heading)
+#endif
         {
             if (heading < 0d || heading > 360d)
             {
@@ -689,6 +868,7 @@ namespace MapControl
                         delta += 360d;
                     }
 
+#if !Avalonia
                     if (headingAnimation != null)
                     {
                         headingAnimation.Completed -= HeadingAnimationCompleted;
@@ -704,6 +884,23 @@ namespace MapControl
                     headingAnimation.Completed += HeadingAnimationCompleted;
 
                     this.BeginAnimation(HeadingProperty, headingAnimation);
+#else
+                    headingAnimation = new Animation
+                    {
+                        Easing = AnimationEasingFunction,
+                        Duration = AnimationDuration,
+                        Children =
+                        {
+                            new KeyFrame
+                            {
+                                KeyTime = AnimationDuration,
+                                Setters = { new Setter { Property = HeadingProperty, Value = Heading + delta } }
+                            }
+                        }
+                    };
+                    headingAnimation.Apply(this, null, Observable.Return(true),
+                        () => HeadingAnimationCompleted(null, null));
+#endif
                 }
             }
         }
@@ -715,14 +912,20 @@ namespace MapControl
                 SetValueInternal(HeadingProperty, TargetHeading);
                 UpdateTransform();
 
+#if !Avalonia
                 headingAnimation.Completed -= HeadingAnimationCompleted;
                 headingAnimation = null;
 
                 this.BeginAnimation(HeadingProperty, null);
+#endif
             }
         }
 
+#if !Avalonia
         private void SetValueInternal(DependencyProperty property, object value)
+#else
+        private void SetValueInternal(AvaloniaProperty property, object value)
+#endif
         {
             internalPropertyChange = true;
 
@@ -746,7 +949,11 @@ namespace MapControl
 
                 if (transformCenter != null)
                 {
+#if !Avalonia
                     var center = ViewToLocation(new Point(RenderSize.Width / 2d, RenderSize.Height / 2d));
+#else
+                    var center = ViewToLocation(new Point(Bounds.Width / 2d, Bounds.Height / 2d));
+#endif
 
                     if (center != null)
                     {
