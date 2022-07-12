@@ -13,6 +13,10 @@ using Microsoft.UI.Xaml.Media;
 using Windows.Foundation;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+#elif Avalonia
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 #else
 using System.Windows;
 using System.Windows.Controls;

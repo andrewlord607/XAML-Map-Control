@@ -135,7 +135,7 @@ namespace MapControl
                 o.UpdateTransform();
             });
 
-            CenterProperty.Changed.AddClassHandler<MapBase>((o, e) =>
+            CenterPointProperty.Changed.AddClassHandler<MapBase>((o, e) =>
             {
                 var center = (Point)e.NewValue;
                 o.CenterPointPropertyChanged(new Location(center.Y, center.X));

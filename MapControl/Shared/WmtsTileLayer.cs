@@ -13,6 +13,8 @@ using Microsoft.UI.Xaml;
 #elif UWP
 using Windows.Foundation;
 using Windows.UI.Xaml;
+#elif Avalonia
+using Avalonia;
 #else
 using System.Windows;
 #endif

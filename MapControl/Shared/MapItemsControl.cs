@@ -13,6 +13,11 @@ using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
+#elif Avalonia
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Data;
+using Avalonia.Data.Core;
 #else
 using System.Windows;
 using System.Windows.Controls;

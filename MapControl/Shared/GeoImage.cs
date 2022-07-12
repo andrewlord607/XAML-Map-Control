@@ -19,6 +19,13 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
+#elif Avalonia
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+
 #else
 using System.Windows;
 using System.Windows.Controls;
@@ -35,15 +42,28 @@ namespace MapControl
         private const string TransformQuery = "/ifd/{ushort=34264}";
         private const string NoDataQuery = "/ifd/{ushort=42113}";
 
+#if !Avalonia
         public static readonly DependencyProperty SourcePathProperty = DependencyProperty.Register(
             nameof(SourcePath), typeof(string), typeof(GeoImage),
             new PropertyMetadata(null, async (o, e) => await ((GeoImage)o).SourcePathPropertyChanged((string)e.NewValue)));
+#else
+        public static readonly AvaloniaProperty<string> SourcePathProperty = AvaloniaProperty.Register<GeoImage, string>(
+            nameof(SourcePath));
+#endif
 
         public string SourcePath
         {
             get { return (string)GetValue(SourcePathProperty); }
             set { SetValue(SourcePathProperty, value); }
         }
+
+#if Avalonia
+        static GeoImage()
+        {
+            SourcePathProperty.Changed.AddClassHandler<GeoImage>(async (o, e) =>
+                await o.SourcePathPropertyChanged((string)e.NewValue));
+        }
+#endif
 
         public GeoImage()
         {
@@ -58,7 +78,11 @@ namespace MapControl
 
             if (sourcePath != null)
             {
+#if !Avalonia
                 Tuple<BitmapSource, Matrix> geoBitmap = null;
+#else
+                Tuple<Bitmap, Matrix> geoBitmap = null;
+#endif
 
                 var ext = Path.GetExtension(sourcePath);
 
@@ -95,6 +119,7 @@ namespace MapControl
                     image.RenderTransform = new RotateTransform { Angle = -rotation };
 
                     // effective unrotated transform
+                    
                     transform.M11 = Math.Sqrt(transform.M11 * transform.M11 + transform.M12 * transform.M12);
                     transform.M22 = -Math.Sqrt(transform.M22 * transform.M22 + transform.M21 * transform.M21);
                     transform.M12 = 0;
@@ -103,7 +128,11 @@ namespace MapControl
 
                 var rect = new Rect(
                     transform.Transform(new Point()),
+#if !Avalonia
                     transform.Transform(new Point(bitmap.PixelWidth, bitmap.PixelHeight)));
+#else
+                    transform.Transform(new Point(bitmap.PixelSize.Width, bitmap.PixelSize.Height)));
+#endif
 
                 boundingBox = new BoundingBox(rect.Y, rect.X, rect.Y + rect.Height, rect.X + rect.Width);
             }
@@ -113,9 +142,17 @@ namespace MapControl
             MapPanel.SetBoundingBox(this, boundingBox);
         }
 
+#if !Avalonia
         private static async Task<Tuple<BitmapSource, Matrix>> ReadWorldFileImage(string sourcePath, string worldFilePath)
+#else
+        private static async Task<Tuple<Bitmap, Matrix>> ReadWorldFileImage(string sourcePath, string worldFilePath)
+#endif
         {
+#if !Avalonia
             var bitmap = (BitmapSource)await ImageLoader.LoadImageAsync(sourcePath);
+#else
+            var bitmap = (Bitmap)await ImageLoader.LoadImageAsync(sourcePath);
+#endif
 
             var transform = await Task.Run(() =>
             {
@@ -145,7 +182,11 @@ namespace MapControl
                     parameters[5]); // line 6: F or OffsetY
             });
 
+#if !Avalonia
             return new Tuple<BitmapSource, Matrix>(bitmap, transform);
+#else
+            return new Tuple<Bitmap, Matrix>(bitmap, transform);
+#endif
         }
     }
 }

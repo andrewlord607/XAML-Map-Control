@@ -19,6 +19,8 @@ using Microsoft.UI.Xaml.Media;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+#elif Avalonia
+
 #else
 using System.Windows;
 using System.Windows.Controls;

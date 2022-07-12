@@ -19,7 +19,6 @@ using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Styling;
-
 #else
 using System.Windows;
 using System.Windows.Controls;

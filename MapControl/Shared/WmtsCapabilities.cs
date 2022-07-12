@@ -8,7 +8,9 @@ using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
 using System.Threading.Tasks;
-#if !WINUI && !UWP
+#if Avalonia
+using Avalonia;
+#elif !WINUI && !UWP
 using System.Windows;
 #endif
 

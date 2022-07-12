@@ -3,10 +3,10 @@
 // Licensed under the Microsoft Public License (Ms-PL)
 
 
-#if !WINUI && !UWP && !Avalonia
-using System.Windows;
-#else
+#if Avalonia
 using Avalonia;
+#elif !WINUI && !UWP
+using System.Windows;
 #endif
 
 namespace MapControl

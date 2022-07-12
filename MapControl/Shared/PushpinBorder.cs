@@ -11,6 +11,10 @@ using Windows.Foundation;
 using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
+#elif Avalonia
+using Avalonia;
+using Avalonia.Layout;
+using Avalonia.Media;
 #else
 using System.Windows;
 using System.Windows.Media;
