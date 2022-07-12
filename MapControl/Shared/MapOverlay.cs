@@ -9,7 +9,9 @@ using Windows.UI.Text;
 using Windows.UI.Text;
 using Windows.UI.Xaml.Media;
 #elif Avalonia
-using Avalonia;
+#nullable enable
+using Avalonia.Collections;
+using Avalonia.Media;
 #else
 using System.Windows;
 using System.Windows.Media;
@@ -40,11 +42,14 @@ namespace MapControl
             set { SetValue(FontStyleProperty, value); }
         }
 
+        // TODO: return after update
+#if !Avalonia
         public FontStretch FontStretch
         {
             get { return (FontStretch)GetValue(FontStretchProperty); }
             set { SetValue(FontStretchProperty, value); }
         }
+#endif
 
         public FontWeight FontWeight
         {
@@ -70,11 +75,19 @@ namespace MapControl
             set { SetValue(StrokeThicknessProperty, value); }
         }
 
+#if !Avalonia
         public DoubleCollection StrokeDashArray
         {
             get { return (DoubleCollection)GetValue(StrokeDashArrayProperty); }
             set { SetValue(StrokeDashArrayProperty, value); }
         }
+#else
+        public AvaloniaList<double>? StrokeDashArray
+        {
+            get { return (AvaloniaList<double>?)GetValue(StrokeDashArrayProperty); }
+            set { SetValue(StrokeDashArrayProperty, value); }
+        }
+#endif
 
         public double StrokeDashOffset
         {
@@ -82,6 +95,7 @@ namespace MapControl
             set { SetValue(StrokeDashOffsetProperty, value); }
         }
 
+#if !Avalonia
         public PenLineCap StrokeDashCap
         {
             get { return (PenLineCap)GetValue(StrokeDashCapProperty); }
@@ -99,6 +113,13 @@ namespace MapControl
             get { return (PenLineCap)GetValue(StrokeEndLineCapProperty); }
             set { SetValue(StrokeEndLineCapProperty, value); }
         }
+#else
+        public PenLineCap StrokeLineCap
+        {
+            get { return (PenLineCap)GetValue(StrokeLineCapProperty); }
+            set { SetValue(StrokeLineCapProperty, value); }
+        }
+#endif
 
         public PenLineJoin StrokeLineJoin
         {
@@ -106,10 +127,13 @@ namespace MapControl
             set { SetValue(StrokeLineJoinProperty, value); }
         }
 
+        //TODO: return after update
+#if !Avalonia
         public double StrokeMiterLimit
         {
             get { return (double)GetValue(StrokeMiterLimitProperty); }
             set { SetValue(StrokeMiterLimitProperty, value); }
         }
+#endif
     }
 }

@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml.Media;
 #elif UWP
 using Windows.UI.Xaml.Media;
+#elif Avalonia
+using Avalonia.Media;
 #else
 using System.Windows.Media;
 #endif
@@ -74,11 +76,19 @@ namespace MapControl
         /// <summary>
         /// Loads a tile ImageSource asynchronously from GetUri(x, y, zoomLevel).
         /// </summary>
+#if !Avalonia
         public virtual Task<ImageSource> LoadImageAsync(int x, int y, int zoomLevel)
+#else
+        public virtual Task<IImage> LoadImageAsync(int x, int y, int zoomLevel)
+#endif
         {
             var uri = GetUri(x, y, zoomLevel);
 
+#if !Avalonia
             return uri != null ? ImageLoader.LoadImageAsync(uri) : Task.FromResult((ImageSource)null);
+#else
+            return uri != null ? ImageLoader.LoadImageAsync(uri) : Task.FromResult((IImage)null);
+#endif
         }
     }
 

@@ -8,15 +8,18 @@ using Microsoft.UI.Xaml.Data;
 #elif UWP
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
+#elif Avalonia
 #else
 using System.Windows;
 using System.Windows.Data;
 #endif
 
+
 namespace MapControl
 {
     internal static class BindingHelper
     {
+#if !Avalonia
         /// <summary>
         /// Returns a Binding to the specified dependency property of a FrameworkElement.
         /// If the source property is itself already bound, the method returns the existing Binding,
@@ -47,5 +50,6 @@ namespace MapControl
                 targetElement.SetBinding(targetProperty, GetOrCreateBinding(sourceElement, sourceProperty, sourcePropertyName));
             }
         }
+#endif
     }
 }

@@ -37,9 +37,15 @@ namespace MapControl
 
     public abstract class MapTileLayerBase : Panel, IMapLayer
     {
+#if !Avalonia
         public static readonly DependencyProperty TileSourceProperty = DependencyProperty.Register(
             nameof(TileSource), typeof(TileSource), typeof(MapTileLayerBase),
             new PropertyMetadata(null, async (o, e) => await ((MapTileLayerBase)o).Update()));
+#else
+        public static readonly AvaloniaProperty<TileSource> TileSourceProperty =
+            AvaloniaProperty.Register<MapTileLayerBase, TileSource>(
+                nameof(TileSource), null);
+#endif
 
         public static readonly DependencyProperty SourceNameProperty = DependencyProperty.Register(
             nameof(SourceName), typeof(string), typeof(MapTileLayerBase), new PropertyMetadata(null));
@@ -62,6 +68,14 @@ namespace MapControl
 
         public static readonly DependencyProperty MapForegroundProperty = DependencyProperty.Register(
             nameof(MapForeground), typeof(Brush), typeof(MapTileLayerBase), new PropertyMetadata(null));
+
+
+#if Avalonia
+        static MapTileLayerBase()
+        {
+            TileSourceProperty.Changed.AddClassHandler<MapTileLayerBase>(async (o, e) => await o.Update());
+        }
+#endif
 
 #if WINUI
         private readonly DispatcherQueueTimer updateTimer;

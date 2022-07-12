@@ -12,6 +12,14 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
+#elif Avalonia
+using System;
+using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Controls;
+using Avalonia.Media;
+using Avalonia.Styling;
+
 #else
 using System.Windows;
 using System.Windows.Controls;
@@ -49,6 +57,7 @@ namespace MapControl
 
         private void FadeIn()
         {
+#if !Avalonia
             Image.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation
             {
                 From = 0d,
@@ -56,6 +65,40 @@ namespace MapControl
                 Duration = MapBase.ImageFadeDuration,
                 FillBehavior = FillBehavior.Stop
             });
+#else
+            var imageAnimation = new Animation
+            {
+                Duration = MapBase.ImageFadeDuration,
+                Children =
+                {
+                    new KeyFrame
+                    {
+                        KeyTime = TimeSpan.Zero,
+                        Setters =
+                        {
+                            new Setter
+                            {
+                                Property = Visual.OpacityProperty,
+                                Value = 0d
+                            }
+                        }
+                    },
+                    new KeyFrame
+                    {
+                        KeyTime = MapBase.ImageFadeDuration,
+                        Setters =
+                        {
+                            new Setter
+                            {
+                                Property = Visual.OpacityProperty,
+                                Value = 1d
+                            }
+                        }
+                    }
+                }
+            };
+            imageAnimation.RunAsync(Image, null);
+#endif
 
             Image.Opacity = 1d;
         }

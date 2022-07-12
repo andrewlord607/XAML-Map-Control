@@ -11,6 +11,8 @@ using System.Xml.Linq;
 using Microsoft.UI.Xaml;
 #elif UWP
 using Windows.UI.Xaml;
+#elif Avalonia
+using Avalonia.Interactivity;
 #else
 using System.Windows;
 #endif
@@ -39,7 +41,11 @@ namespace MapControl
         {
             MinZoomLevel = 1;
             MaxZoomLevel = 21;
+#if !Avalonia
             Loaded += OnLoaded;
+#else
+            Initialized += OnLoaded;
+#endif
         }
 
         public static string ApiKey { get; set; }
@@ -48,9 +54,17 @@ namespace MapControl
         public string Culture { get; set; }
         public Uri LogoImageUri { get; private set; }
 
+#if !Avalonia
         private async void OnLoaded(object sender, RoutedEventArgs args)
+#else
+        private async void OnLoaded(object sender, EventArgs args)
+#endif
         {
+#if !Avalonia
             Loaded -= OnLoaded;
+#else
+            Initialized -= OnLoaded;
+#endif
 
             if (!string.IsNullOrEmpty(ApiKey))
             {

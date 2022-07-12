@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 #if WINUI
 using Microsoft.UI.Xaml.Media;
@@ -14,6 +15,11 @@ using Microsoft.UI.Xaml.Media.Imaging;
 #elif UWP
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
+#elif Avalonia
+using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 #else
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -29,9 +35,17 @@ namespace MapControl
         public static HttpClient HttpClient { get; set; } = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
 
 
+#if !Avalonia
         public static async Task<ImageSource> LoadImageAsync(Uri uri)
+#else
+        public static async Task<IImage> LoadImageAsync(Uri uri)
+#endif
         {
+#if !Avalonia
             ImageSource image = null;
+#else
+            IImage image = null;
+#endif
 
             try
             {
@@ -50,7 +64,20 @@ namespace MapControl
                 }
                 else
                 {
+#if !Avalonia
                     image = new BitmapImage(uri);
+#else
+                    if (!uri.OriginalString.StartsWith("avares://"))
+                    {
+                        var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
+                        uri = new Uri($"avares://{assemblyName}{uri.OriginalString}");
+                    }
+
+                    var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
+                    var asset = assets.Open(uri);
+
+                    image = new Bitmap(asset);
+#endif
                 }
             }
             catch (Exception ex)

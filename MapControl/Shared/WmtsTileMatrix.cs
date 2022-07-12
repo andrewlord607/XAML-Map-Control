@@ -2,8 +2,11 @@
 // © 2022 Clemens Fischer
 // Licensed under the Microsoft Public License (Ms-PL)
 
-#if !WINUI && !UWP
+
+#if !WINUI && !UWP && !Avalonia
 using System.Windows;
+#else
+using Avalonia;
 #endif
 
 namespace MapControl
