@@ -20,7 +20,9 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 #elif Avalonia
-
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 #else
 using System.Windows;
 using System.Windows.Controls;
@@ -54,18 +56,36 @@ namespace MapControl
             public LatLonBox LatLonBox { get; }
             public string ImagePath { get; }
             public int ZIndex { get; }
+
+#if !Avalonia
             public ImageSource ImageSource { get; set; }
+#else
+            public IImage ImageSource { get; set; }
+#endif
         }
 
+#if !Avalonia
         public static readonly DependencyProperty SourcePathProperty = DependencyProperty.Register(
             nameof(SourcePath), typeof(string), typeof(GroundOverlay),
             new PropertyMetadata(null, async (o, e) => await ((GroundOverlay)o).SourcePathPropertyChanged((string)e.NewValue)));
+#else
+        public static readonly AvaloniaProperty<string> SourcePathProperty = AvaloniaProperty.Register<GroundOverlay, string>(
+            nameof(SourcePath));
+#endif
 
         public string SourcePath
         {
             get { return (string)GetValue(SourcePathProperty); }
             set { SetValue(SourcePathProperty, value); }
         }
+
+#if Avalonia
+        static GroundOverlay()
+        {
+            SourcePathProperty.Changed.AddClassHandler<GroundOverlay>(async (o, e) =>
+                await o.SourcePathPropertyChanged((string)e.NewValue));
+        }
+#endif
 
         private async Task SourcePathPropertyChanged(string sourcePath)
         {
@@ -104,7 +124,11 @@ namespace MapControl
         {
             foreach (var imageOverlay in imageOverlays.Where(i => i.ImageSource != null))
             {
+#if !Avalonia
                 FrameworkElement overlay = new Image
+#else
+                Control overlay = new Image
+#endif
                 {
                     Source = imageOverlay.ImageSource,
                     Stretch = Stretch.Fill,
@@ -114,7 +138,12 @@ namespace MapControl
                 if (imageOverlay.LatLonBox.Rotation != 0d)
                 {
                     overlay.RenderTransform = new RotateTransform { Angle = -imageOverlay.LatLonBox.Rotation };
+#if !Avalonia
                     overlay.RenderTransformOrigin = new Point(0.5, 0.5);
+#else
+                    overlay.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+
+#endif
 
                     // additional Panel for map rotation, see MapPanel.ArrangeElementWithBoundingBox
                     var panel = new Grid { UseLayoutRounding = false };
@@ -123,7 +152,11 @@ namespace MapControl
                 }
 
                 SetBoundingBox(overlay, imageOverlay.LatLonBox);
+#if !Avalonia
                 Canvas.SetZIndex(overlay, imageOverlay.ZIndex);
+#else
+                overlay.ZIndex = imageOverlay.ZIndex;
+#endif
                 Children.Add(overlay);
             }
         }

@@ -3,6 +3,7 @@
 // Licensed under the Microsoft Public License (Ms-PL)
 
 using System;
+using System.Linq;
 #if WINUI
 using Windows.Foundation;
 using Microsoft.UI.Xaml;
@@ -18,6 +19,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Data.Core;
+using Avalonia.Controls.Generators;
 #else
 using System.Windows;
 using System.Windows.Controls;
@@ -31,10 +33,15 @@ namespace MapControl
     /// </summary>
     public partial class MapItem : ListBoxItem
     {
+        #if !Avalonia
         public static readonly DependencyProperty LocationMemberPathProperty = DependencyProperty.Register(
             nameof(LocationMemberPath), typeof(string), typeof(MapItem),
             new PropertyMetadata(null, (o, e) => BindingOperations.SetBinding(
                 o, LocationProperty, new Binding { Path = new PropertyPath((string)e.NewValue) })));
+#else
+        public static readonly AvaloniaProperty<string> LocationMemberPathProperty = AvaloniaProperty.Register<MapItem, string>(
+            nameof(LocationMemberPath));
+        #endif
 
         /// <summary>
         /// Gets/sets MapPanel.AutoCollapse.
@@ -62,13 +69,44 @@ namespace MapControl
             get { return (string)GetValue(LocationMemberPathProperty); }
             set { SetValue(LocationMemberPathProperty, value); }
         }
+
+#if Avalonia
+        static MapItem()
+        {
+            LocationMemberPathProperty.Changed.AddClassHandler<MapItem>(
+                (o, e) =>
+                {
+                    o.Bind(LocationProperty, new Binding {Path = (string)e.NewValue});
+                });
+        }
+#endif
     }
+
+#if Avalonia
+    public class MapItemContainerGenerator : ItemContainerGenerator<MapItem>
+    {
+        public MapItemContainerGenerator(MapItemsControl owner) : base(owner, ContentControl.ContentProperty, ContentControl.ContentTemplateProperty)
+        {
+            Owner = owner;
+        }
+
+        public new MapItemsControl Owner { get; }
+
+        protected override IControl CreateContainer(object item)
+        {
+            var mapItem = (MapItem)base.CreateContainer(item);
+            mapItem.ParentControl = Owner;
+            return mapItem;
+        }
+    }
+#endif
 
     /// <summary>
     /// Manages a collection of selectable items on a Map.
     /// </summary>
     public partial class MapItemsControl : ListBox
     {
+#if!Avalonia
         protected override DependencyObject GetContainerForItemOverride()
         {
             return new MapItem();
@@ -78,17 +116,34 @@ namespace MapControl
         {
             return item is MapItem;
         }
+#else
+        protected override IItemContainerGenerator CreateItemContainerGenerator()
+        {
+            return new MapItemContainerGenerator(this);
+        }
+#endif
 
+#if !Avalonia
         public void SelectItems(Predicate<object> predicate)
+#else
+        public void SelectItems(Predicate<int> predicate)
+#endif
         {
             if (SelectionMode == SelectionMode.Single)
             {
                 throw new InvalidOperationException("SelectionMode must not be Single");
             }
 
+            #if Avalonia
+            var i = 0;
+            #endif
             foreach (var item in Items)
             {
+#if !Avalonia
                 var selected = predicate(item);
+#else
+                var selected = predicate(i);
+#endif
 
                 if (selected != SelectedItems.Contains(item))
                 {
@@ -101,6 +156,9 @@ namespace MapControl
                         SelectedItems.Remove(item);
                     }
                 }
+#if Avalonia
+                i++;
+#endif
             }
         }
 
@@ -108,7 +166,11 @@ namespace MapControl
         {
             SelectItems(item =>
             {
+#if !Avalonia
                 var loc = MapPanel.GetLocation(ContainerFromItem(item));
+#else
+                var loc = MapPanel.GetLocation((Control)ItemContainerGenerator.ContainerFromIndex(item));
+#endif
                 return loc != null && predicate(loc);
             });
         }
@@ -117,7 +179,11 @@ namespace MapControl
         {
             SelectItems(item =>
             {
+#if !Avalonia
                 var pos = MapPanel.GetViewPosition(ContainerFromItem(item));
+#else
+                var pos = MapPanel.GetViewPosition((Control)ItemContainerGenerator.ContainerFromIndex(item));
+#endif
                 return pos.HasValue && predicate(pos.Value);
             });
         }
@@ -127,10 +193,29 @@ namespace MapControl
             SelectItemsByPosition(p => rect.Contains(p));
         }
 
+#if !Avalonia
         protected internal void OnItemClicked(FrameworkElement mapItem, bool controlKey, bool shiftKey)
+#else
+        protected internal void OnItemClicked(Control mapItem, bool controlKey, bool shiftKey)
+#endif
         {
+#if !Avalonia
             var item = ItemFromContainer(mapItem);
+#else
+            var i = 0;
+            object item = null;
+            var index = ItemContainerGenerator.IndexFromContainer(mapItem);
+            foreach (var insideItem in Items)
+            {
+                if (i == index)
+                {
+                    item = insideItem;
+                }
 
+                i++;
+            }
+#endif
+            
             if (SelectionMode == SelectionMode.Single)
             {
                 // Single -> set only SelectedItem
@@ -161,7 +246,11 @@ namespace MapControl
             {
                 // Extended with Shift -> select items in view rectangle
 
+#if !Avalonia
                 var p1 = MapPanel.GetViewPosition(ContainerFromItem(SelectedItem));
+#else
+                var p1 = MapPanel.GetViewPosition((Control)ItemContainerGenerator.ContainerFromIndex(SelectedIndex));
+#endif
                 var p2 = MapPanel.GetViewPosition(mapItem);
 
                 if (p1.HasValue && p2.HasValue)

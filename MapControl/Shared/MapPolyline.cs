@@ -10,6 +10,8 @@ using Microsoft.UI.Xaml.Media;
 #elif UWP
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
+#elif Avalonia
+using Avalonia.Media;
 #else
 using System.Windows;
 using System.Windows.Media;

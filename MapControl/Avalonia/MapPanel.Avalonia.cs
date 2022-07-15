@@ -6,7 +6,7 @@ namespace MapControl
 {
     public partial class MapPanel
     {
-        public static readonly AvaloniaProperty<Location> LocationProperty = AvaloniaProperty.RegisterAttached<MapPanel, Location>(
+        public static readonly StyledProperty<Location> LocationProperty = AvaloniaProperty.RegisterAttached<MapPanel, Location>(
             "Location", typeof(MapPanel));
 
         public static readonly AvaloniaProperty<BoundingBox> BoundingBoxProperty = AvaloniaProperty.RegisterAttached<MapPanel, BoundingBox>(

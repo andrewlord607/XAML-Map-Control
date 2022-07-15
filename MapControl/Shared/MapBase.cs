@@ -125,7 +125,7 @@ namespace MapControl
                 o.MaxZoomLevelPropertyChanged((double)e.NewValue));
 
             CenterProperty.Changed.AddClassHandler<MapBase>((o, e) =>
-                ((MapBase)o).CenterPropertyChanged((Location)e.NewValue));
+                o.CenterPropertyChanged((Location)e.NewValue));
 
             ClipToBoundsProperty.OverrideMetadata(typeof(MapBase), new StyledPropertyMetadata<bool>(true));
 
@@ -140,6 +140,21 @@ namespace MapControl
                 var center = (Point)e.NewValue;
                 o.CenterPointPropertyChanged(new Location(center.Y, center.X));
             });
+
+            TargetCenterProperty.Changed.AddClassHandler<MapBase>(
+                (o, e) => o.TargetCenterPropertyChanged((Location)e.NewValue));
+
+            ZoomLevelProperty.Changed.AddClassHandler<MapBase>(
+                (o, e) => o.ZoomLevelPropertyChanged((double)e.NewValue));
+
+            TargetZoomLevelProperty.Changed.AddClassHandler<MapBase>((o, e) =>
+                o.TargetZoomLevelPropertyChanged((double)e.NewValue));
+
+            HeadingProperty.Changed.AddClassHandler<MapBase>((o, e) =>
+                o.HeadingPropertyChanged((double)e.NewValue));
+
+            TargetHeadingProperty.Changed.AddClassHandler<MapBase>((o, e) =>
+                o.TargetHeadingPropertyChanged((double)e.NewValue));
         }
 #endif
 

@@ -19,6 +19,14 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
+#elif Avalonia
+using Avalonia;
+using Avalonia.Media;
+using Avalonia.Threading;
+using Avalonia.Controls;
+using Avalonia.Animation;
+using Avalonia.Styling;
+using System.Reactive.Linq;
 #else
 using System.Windows;
 using System.Windows.Controls;
@@ -128,7 +136,11 @@ namespace MapControl
         /// </summary>
         public BoundingBox BoundingBox { get; private set; }
 
+#if !Avalonia
         protected abstract Task<ImageSource> GetImageAsync();
+#else
+        protected abstract Task<IImage> GetImageAsync();
+#endif
 
         protected override void SetParentMap(MapBase map)
         {
@@ -175,13 +187,21 @@ namespace MapControl
             {
                 updateTimer.Run(); // update image on next timer tick
             }
+#if !Avalonia
             else if (ParentMap != null && ParentMap.RenderSize.Width > 0 && ParentMap.RenderSize.Height > 0)
+#else
+            else if (ParentMap != null && ParentMap.Bounds.Width > 0 && ParentMap.Bounds.Height > 0)
+#endif
             {
                 updateInProgress = true;
 
                 UpdateBoundingBox();
 
+#if !Avalonia
                 ImageSource image = null;
+#else
+                IImage image = null;
+#endif
 
                 if (BoundingBox != null)
                 {
@@ -203,10 +223,17 @@ namespace MapControl
 
         private void UpdateBoundingBox()
         {
+#if !Avalonia
             var width = ParentMap.RenderSize.Width * RelativeImageSize;
             var height = ParentMap.RenderSize.Height * RelativeImageSize;
             var x = (ParentMap.RenderSize.Width - width) / 2d;
             var y = (ParentMap.RenderSize.Height - height) / 2d;
+#else
+            var width = ParentMap.Bounds.Width * RelativeImageSize;
+            var height = ParentMap.Bounds.Height * RelativeImageSize;
+            var x = (ParentMap.Bounds.Width - width) / 2d;
+            var y = (ParentMap.Bounds.Height - height) / 2d;
+#endif
             var rect = new Rect(x, y, width, height);
 
             BoundingBox = ParentMap.ViewRectToBoundingBox(rect);
@@ -241,7 +268,11 @@ namespace MapControl
             }
         }
 
+#if !Avalonia
         private void SwapImages(ImageSource image)
+#else
+        private void SwapImages(IImage image)
+#endif
         {
             if (Children.Count >= 2)
             {
@@ -254,6 +285,7 @@ namespace MapControl
                 topImage.Source = image;
                 SetBoundingBox(topImage, BoundingBox);
 
+#if !Avalonia
                 topImage.BeginAnimation(OpacityProperty, new DoubleAnimation
                 {
                     To = 1d,
@@ -266,6 +298,36 @@ namespace MapControl
                     BeginTime = MapBase.ImageFadeDuration,
                     Duration = TimeSpan.Zero
                 });
+#else
+                var topAnimation = new Animation
+                {
+                    Duration = MapBase.ImageFadeDuration,
+                    Children =
+                    {
+                        new KeyFrame
+                        {
+                            KeyTime = MapBase.ImageFadeDuration,
+                            Setters = { new Setter(OpacityProperty, 1d) }
+                        }
+                    }
+                };
+                topAnimation.Apply(topImage, null, Observable.Return(true), () =>
+                {
+                    var bottomAnimation = new Animation()
+                    {
+                        Duration = TimeSpan.Zero,
+                        Children =
+                        {
+                            new KeyFrame()
+                            {
+                                KeyTime = TimeSpan.Zero,
+                                Setters = { new Setter(OpacityProperty, 0d) }
+                            }
+                        }
+                    };
+                    bottomAnimation.RunAsync(bottomImage, null);
+                });
+#endif
             }
         }
     }

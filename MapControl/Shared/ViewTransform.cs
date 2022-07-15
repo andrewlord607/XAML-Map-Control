@@ -3,6 +3,7 @@
 // Licensed under the Microsoft Public License (Ms-PL)
 
 using System;
+using Avalonia.Media;
 #if WINUI
 using Windows.Foundation;
 using Microsoft.UI.Xaml.Media;
@@ -129,6 +130,7 @@ namespace MapControl
 
             // transform view bounds to tile pixel bounds
             //
+            //new Rect(0d, 0d, viewSize.Width, viewSize.Height).TransformToAABB(transform)
             return new MatrixTransform { Matrix = transform }
                 .TransformBounds(new Rect(0d, 0d, viewSize.Width, viewSize.Height));
         }

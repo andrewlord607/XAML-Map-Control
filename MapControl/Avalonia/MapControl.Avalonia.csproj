@@ -32,6 +32,7 @@
         <PackageReference Include="Avalonia" Version="0.10.16" />
         <PackageReference Include="Avalonia.Desktop" Version="0.10.15" />
         <PackageReference Include="Avalonia.Diagnostics" Version="0.10.15" />
+        <PackageReference Include="Avalonia.X11" Version="0.10.15" />
         <PackageReference Include="System.Runtime.Caching" Version="6.0.0" />
     </ItemGroup>
 

@@ -44,7 +44,7 @@ namespace MapControl
 #else
         public static readonly AvaloniaProperty<TileSource> TileSourceProperty =
             AvaloniaProperty.Register<MapTileLayerBase, TileSource>(
-                nameof(TileSource), null);
+                nameof(TileSource));
 #endif
 
         public static readonly DependencyProperty SourceNameProperty = DependencyProperty.Register(

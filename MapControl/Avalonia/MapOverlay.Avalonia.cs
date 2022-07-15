@@ -11,25 +11,25 @@ namespace MapControl
 {
     public partial class MapOverlay
     {
-        public static readonly AvaloniaProperty<FontFamily> FontFamilyProperty = TextBlock.FontFamilyProperty.AddOwner<MapOverlay>();
+        public static readonly StyledProperty<FontFamily> FontFamilyProperty = TextBlock.FontFamilyProperty.AddOwner<MapOverlay>();
 
-        public static readonly AvaloniaProperty<double> FontSizeProperty = TextBlock.FontSizeProperty.AddOwner<MapOverlay>();
+        public static readonly StyledProperty<double> FontSizeProperty = TextBlock.FontSizeProperty.AddOwner<MapOverlay>();
 
-        public static readonly AvaloniaProperty<FontStyle> FontStyleProperty = TextBlock.FontStyleProperty.AddOwner<MapOverlay>();
+        public static readonly StyledProperty<FontStyle> FontStyleProperty = TextBlock.FontStyleProperty.AddOwner<MapOverlay>();
 
         //public static readonly AvaloniaProperty FontStretchProperty = TextBlock.FontStretchProperty.AddOwner<MapOverlay>();
 
-        public static readonly AvaloniaProperty<FontWeight> FontWeightProperty = TextBlock.FontWeightProperty.AddOwner<MapOverlay>();
+        public static readonly StyledProperty<FontWeight> FontWeightProperty = TextBlock.FontWeightProperty.AddOwner<MapOverlay>();
 
-        public static readonly AvaloniaProperty<IBrush> ForegroundProperty = TextBlock.ForegroundProperty.AddOwner<MapOverlay>();
+        public static readonly StyledProperty<IBrush> ForegroundProperty = TextBlock.ForegroundProperty.AddOwner<MapOverlay>();
 
-        public static readonly AvaloniaProperty<IBrush?> StrokeProperty = Shape.StrokeProperty.AddOwner<MapOverlay>();
+        public static readonly StyledProperty<IBrush?> StrokeProperty = Shape.StrokeProperty.AddOwner<MapOverlay>();
 
-        public static readonly AvaloniaProperty<double> StrokeThicknessProperty = Shape.StrokeThicknessProperty.AddOwner<MapOverlay>();
+        public static readonly StyledProperty<double> StrokeThicknessProperty = Shape.StrokeThicknessProperty.AddOwner<MapOverlay>();
 
-        public static readonly AvaloniaProperty<AvaloniaList<double>?> StrokeDashArrayProperty = Shape.StrokeDashArrayProperty.AddOwner<MapOverlay>();
+        public static readonly StyledProperty<AvaloniaList<double>?> StrokeDashArrayProperty = Shape.StrokeDashArrayProperty.AddOwner<MapOverlay>();
 
-        public static readonly AvaloniaProperty<double> StrokeDashOffsetProperty = Shape.StrokeDashOffsetProperty.AddOwner<MapOverlay>();
+        public static readonly StyledProperty<double> StrokeDashOffsetProperty = Shape.StrokeDashOffsetProperty.AddOwner<MapOverlay>();
 
         public static readonly StyledProperty<PenLineCap> StrokeLineCapProperty = Shape.StrokeLineCapProperty.AddOwner<MapOverlay>();
 

@@ -15,6 +15,8 @@ using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 #elif Avalonia
+using Avalonia;
+using Avalonia.Media;
 #else
 using System.Windows;
 using System.Windows.Media;
@@ -47,8 +49,14 @@ namespace MapControl
 
         private const double LineInterpolationResolution = 2d;
 
+#if !Avalonia
         public static readonly DependencyProperty MinLineDistanceProperty = DependencyProperty.Register(
             nameof(MinLineDistance), typeof(double), typeof(MapGraticule), new PropertyMetadata(150d));
+#else
+        public static readonly AvaloniaProperty<double> MinLineDistanceProperty =
+            AvaloniaProperty.Register<MapGraticule, double>(
+                nameof(MinLineDistance), 150d);
+#endif
 
         private double lineDistance;
         private string labelFormat;
@@ -110,8 +118,13 @@ namespace MapControl
         private void AddLabel(ICollection<Label> labels, Location location, Point position, double? rotation = null)
         {
             if (MapProjection.IsValid(position) &&
+#if !Avalonia
                 position.X >= 0d && position.X <= ParentMap.RenderSize.Width &&
                 position.Y >= 0d && position.Y <= ParentMap.RenderSize.Height)
+#else
+                position.X >= 0d && position.X <= ParentMap.Bounds.Width &&
+                position.Y >= 0d && position.Y <= ParentMap.Bounds.Height)
+#endif
             {
                 if (!rotation.HasValue)
                 {
@@ -135,7 +148,11 @@ namespace MapControl
             }
         }
 
+#if !Avalonia
         private ICollection<Label> DrawGraticule(PathFigureCollection figures)
+#else
+        private ICollection<Label> DrawGraticule(PathFigures figures)
+#endif
         {
             var labels = new List<Label>();
 
@@ -155,9 +172,17 @@ namespace MapControl
             return labels;
         }
 
+#if !Avalonia
         private void DrawCylindricalGraticule(PathFigureCollection figures, ICollection<Label> labels)
+#else
+        private void DrawCylindricalGraticule(PathFigures figures, ICollection<Label> labels)
+#endif
         {
+#if !Avalonia
             var bounds = ParentMap.ViewRectToBoundingBox(new Rect(0, 0, ParentMap.RenderSize.Width, ParentMap.RenderSize.Height));
+#else
+            var bounds = ParentMap.ViewRectToBoundingBox(new Rect(0, 0, ParentMap.Bounds.Width, ParentMap.Bounds.Height));
+#endif
             var latLabelStart = Math.Ceiling(bounds.South / lineDistance) * lineDistance;
             var lonLabelStart = Math.Ceiling(bounds.West / lineDistance) * lineDistance;
 
@@ -192,7 +217,11 @@ namespace MapControl
             }
         }
 
+#if!Avalonia
         private void DrawGraticule(PathFigureCollection figures, ICollection<Label> labels)
+#else
+        private void DrawGraticule(PathFigures figures, ICollection<Label> labels)
+#endif
         {
             var minLat = 0d;
             var maxLat = 0d;
@@ -274,7 +303,11 @@ namespace MapControl
             }
         }
 
+#if !Avalonia
         private bool DrawMeridian(PathFigureCollection figures,
+#else
+        private bool DrawMeridian(PathFigures figures,
+#endif
             double longitude, double startLatitude, double deltaLatitude, int numPoints)
         {
             var points = new List<Point>();
@@ -287,8 +320,13 @@ namespace MapControl
                 if (MapProjection.IsValid(p))
                 {
                     visible = visible ||
+#if !Avalonia
                         p.X >= 0d && p.X <= ParentMap.RenderSize.Width &&
                         p.Y >= 0d && p.Y <= ParentMap.RenderSize.Height;
+#else
+                        p.X >= 0d && p.X <= ParentMap.Bounds.Width &&
+                        p.Y >= 0d && p.Y <= ParentMap.Bounds.Height;
+#endif
 
                     points.Add(p);
                 }
@@ -304,8 +342,13 @@ namespace MapControl
 
         private void GetLatitudeRange(double lineDistance, ref double minLatitude, ref double maxLatitude)
         {
+#if !Avalonia
             var width = ParentMap.RenderSize.Width;
             var height = ParentMap.RenderSize.Height;
+#else
+            var width = ParentMap.Bounds.Width;
+            var height = ParentMap.Bounds.Height;
+#endif
             var northPole = ParentMap.LocationToView(new Location(90d, 0d));
             var southPole = ParentMap.LocationToView(new Location(-90d, 0d));
 

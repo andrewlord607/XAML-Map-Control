@@ -47,7 +47,7 @@ namespace MapControl
         public static readonly DependencyProperty AutoCollapseProperty = DependencyProperty.RegisterAttached(
             "AutoCollapse", typeof(bool), typeof(MapPanel), new PropertyMetadata(false));
 #else
-        public static readonly AvaloniaProperty<bool> AutoCollapseProperty =
+        public static readonly StyledProperty<bool> AutoCollapseProperty =
             AvaloniaProperty.Register<MapPanel, bool>("AutoCollapse");
 #endif
 
