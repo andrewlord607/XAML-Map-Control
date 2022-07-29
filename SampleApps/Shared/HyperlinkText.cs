@@ -13,6 +13,9 @@ using Microsoft.UI.Xaml.Documents;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
+#elif Avalonia
+using Avalonia.Controls;
+using System.Diagnostics;
 #else
 using System.Diagnostics;
 using System.Windows;
@@ -22,6 +25,7 @@ using System.Windows.Documents;
 
 namespace SampleApplication
 {
+#if !Avalonia
     public static class HyperlinkText
     {
         private static readonly Regex regex = new Regex(@"\[([^\]]+)\]\(([^\)]+)\)");
@@ -111,4 +115,7 @@ namespace SampleApplication
             }
         }
     }
+#else
+    //TODO: Avalonia 11.0 Inlines
+#endif
 }

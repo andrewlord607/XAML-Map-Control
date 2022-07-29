@@ -2,8 +2,204 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:map="using:MapControl"
+        xmlns:local="using:SampleApplication"
+        xmlns:styling="clr-namespace:Avalonia.Styling;assembly=MapControl.Avalonia"
+        xmlns:uiTools="clr-namespace:MapControl.UiTools;assembly=MapUiTools.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="AvaloniaApp.MainWindow"
+        x:Class="SampleApplication.MainWindow"
+
         Title="AvaloniaApp">
-    Welcome to Avalonia!
+    <Window.DataContext>
+        <local:MapViewModel />
+    </Window.DataContext>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+              <ResourceInclude  Source="/Assets/MapLayers.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <map:Map x:Name="map"
+                 MinZoomLevel="2" MaxZoomLevel="21" ZoomLevel="11" MouseWheelZoomDelta="1"
+                 Center="53.5,8.2"
+                 PointerPressed="MapMouseButtonDown"
+                 PointerMoved="MapMouseMove"
+                 PointerLeave="MapMouseLeave"
+                 Width="1000"
+                 Height="1000">
+            <map:MapItemsControl Items="{Binding Polylines}" />
+
+            <map:MapItemsControl Items="{Binding Points}"
+                                 SelectionMode="Toggle">
+                <map:MapItemsControl.Styles>
+                    <Style Selector="map|MapItem">
+                        <styling:EventSetter Event="PointerPressed" Handler="MapItemTouchDown" />
+                        <Setter Property="AutoCollapse" Value="True" />
+                        <Setter Property="Location" Value="{Binding Location}" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="map:MapItem">
+                                    <Canvas>
+                                        <Canvas.Styles>
+                                            <Style Selector="Canvas:pointerover /template/ Path#hoverPath">
+                                                <Style.Animations>
+                                                    <Animation Duration="0:0:0.1">
+                                                        <KeyFrame Cue="0%">
+                                                            <Setter Property="Opacity" Value="0" />
+                                                        </KeyFrame>
+                                                        <KeyFrame Cue="100%">
+                                                            <Setter Property="Opacity" Value="0.7" />
+                                                        </KeyFrame>
+                                                    </Animation>
+                                                </Style.Animations>
+                                            </Style>
+                                            <Style Selector="Canvas:selected /template/ Path#selectedPath">
+                                                <Style.Animations>
+                                                    <Animation Duration="0:0:0.1">
+                                                        <KeyFrame Cue="0%">
+                                                            <Setter Property="Opacity" Value="0" />
+                                                        </KeyFrame>
+                                                        <KeyFrame Cue="100%">
+                                                            <Setter Property="Opacity" Value="0.7" />
+                                                        </KeyFrame>
+                                                    </Animation>
+                                                </Style.Animations>
+                                            </Style>
+                                        </Canvas.Styles>
+                                        <Path x:Name="selectedPath" Fill="White" Opacity="0">
+                                            <Path.Data>
+                                                <EllipseGeometry RadiusX="12" RadiusY="12" />
+                                            </Path.Data>
+                                        </Path>
+                                        <Path x:Name="hoverPath" StrokeThickness="6" Stroke="White" Opacity="0">
+                                            <Path.Data>
+                                                <EllipseGeometry RadiusX="8" RadiusY="8" />
+                                            </Path.Data>
+                                        </Path>
+                                        <Path StrokeThickness="2" Stroke="Gray" Fill="Transparent">
+                                            <Path.Data>
+                                                <EllipseGeometry RadiusX="8" RadiusY="8" />
+                                            </Path.Data>
+                                        </Path>
+                                        <Grid Canvas.Left="15" Canvas.Top="-8">
+                                            <TextBlock Margin="1" Text="{Binding Name}"
+                                                       Background="{Binding Background, RelativeSource={RelativeSource AncestorType=map:MapBase}}" />
+                                        </Grid>
+                                    </Canvas>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </map:MapItemsControl.Styles>
+            </map:MapItemsControl>
+
+            <map:MapItemsControl Items="{Binding Pushpins}">
+                <map:MapItemsControl.Styles>
+                    <Style Selector="map|MapItem">
+                      <styling:EventSetter Event="PointerPressed" Handler="MapItemTouchDown"/>
+                      <Setter Property="AutoCollapse" Value="True"/>
+                      <Setter Property="Location" Value="{Binding Location}"/>
+                      <Setter Property="HorizontalAlignment" Value="Center"/>
+                      <Setter Property="VerticalAlignment" Value="Bottom"/>
+                      
+                      <Setter Property="Template">
+                          <Setter.Value>
+                              <ControlTemplate TargetType="map:MapItem">
+                                  <map:Pushpin Content="{Binding Name}"
+                                               HorizontalAlignment="{TemplateBinding HorizontalAlignment}"/>
+                              </ControlTemplate>
+                          </Setter.Value>
+                      </Setter>
+                    </Style>
+                    <Style Selector="map|MapItem:selected">
+                        <Setter Property="ZIndex" Value="1"/>
+                        <Setter Property="Foreground" Value="OrangeRed"/>
+                    </Style>
+                </map:MapItemsControl.Styles>
+            </map:MapItemsControl>
+
+            <map:Pushpin AutoCollapse="True" Location="65,-18" Content="Iceland" />
+            <map:Pushpin AutoCollapse="True" Location="71,25" Content="Norway" />
+            <map:Pushpin AutoCollapse="True" Location="35,33" Content="Cyprus" />
+            <map:Pushpin AutoCollapse="True" Location="28.25,-16.5" Content="Tenerife" />
+
+            <map:MapPath Location="53.5,8.2" Stroke="Blue" StrokeThickness="3" Fill="#1F007F00">
+                <map:MapPath.Data>
+                    <EllipseGeometry RadiusX="1852" RadiusY="1852" />
+                </map:MapPath.Data>
+            </map:MapPath>
+
+            <map:Pushpin AutoCollapse="True" Location="53.5,8.2" Content="N 53°30' E 8°12'" />
+        </map:Map>
+
+        <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="#AFFFFFFF">
+            <TextBlock Margin="4,2" FontSize="10"
+                       Text="{Binding MapLayer.Description, ElementName=map}"/>
+        </Border>
+
+        <TextBlock x:Name="mouseLocation" Margin="4" FontFamily="Consolas"
+                   Background="{Binding Background, ElementName=map}"
+                   Foreground="{Binding Foreground, ElementName=map}"
+                   HorizontalAlignment="Center" VerticalAlignment="Top"
+                   IsHitTestVisible="False" />
+
+        <!-- Return after https://github.com/kekekeks/XamlX/issues/45 -->
+        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6">
+            <uiTools:MapLayersMenuButton x:Name="mapLayersMenuButton"
+                                         Margin="2"
+                                         ToolTip.Tip="Map Layers and Overlays"
+                                         Map="{Binding ElementName=map}">
+                <uiTools:MapLayersMenuButton.MapLayers>
+                    <uiTools:MapLayerItem Text="OpenStreetMap" Layer="{StaticResource OpenStreetMap}"/>
+                    <uiTools:MapLayerItem Text="OpenStreetMap German" Layer="{StaticResource OpenStreetMapGerman}"/>
+                    <uiTools:MapLayerItem Text="OpenStreetMap French" Layer="{StaticResource OpenStreetMapFrench}"/>
+                    <uiTools:MapLayerItem Text="OpenTopoMap" Layer="{StaticResource OpenTopoMap}"/>
+                    <uiTools:MapLayerItem Text="TopPlusOpen WMTS" Layer="{StaticResource TopPlusOpenWMTS}"/>
+                    <uiTools:MapLayerItem Text="TopPlusOpen WMS" Layer="{StaticResource TopPlusOpenWMS}"/>
+                    <uiTools:MapLayerItem Text="OpenStreetMap WMS" Layer="{StaticResource OpenStreetMapWMS}"/>
+                </uiTools:MapLayersMenuButton.MapLayers>
+                <uiTools:MapLayersMenuButton.MapOverlays>
+                    <uiTools:MapLayerItem Text="Sample Image">
+                        <Image Source="/Assets/10_535_330.jpg" map:MapPanel.BoundingBox="53.54031,8.08594,53.74871,8.43750"/>
+                    </uiTools:MapLayerItem>
+                    <uiTools:MapLayerItem Text="Seamarks" Layer="{StaticResource Seamarks}"/>
+                    <uiTools:MapLayerItem Text="Graticule">
+                        <map:MapGraticule Opacity="0.7"/>
+                    </uiTools:MapLayerItem>
+                    <uiTools:MapLayerItem Text="Scale">
+                        <map:MapScale HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                    </uiTools:MapLayerItem>
+                </uiTools:MapLayersMenuButton.MapOverlays>
+            </uiTools:MapLayersMenuButton>
+
+            <uiTools:MapProjectionsMenuButton x:Name="mapProjectionsMenuButton"
+                                            Margin="2" ToolTip.Tip="Map Projections"
+                                            Map="{Binding ElementName=map}">
+                <uiTools:MapProjectionsMenuButton.MapProjections>
+                    <uiTools:MapProjectionItem Text="Web Mercator" Projection="EPSG:3857"/>
+                    <uiTools:MapProjectionItem Text="Equirectangular" Projection="EPSG:4326"/>
+                </uiTools:MapProjectionsMenuButton.MapProjections>
+            </uiTools:MapProjectionsMenuButton>
+
+            <Slider Orientation="Vertical" Margin="8" Height="100"
+                    Minimum="{Binding MinZoomLevel, ElementName=map}"
+                    Maximum="{Binding MaxZoomLevel, ElementName=map}"
+                    Value="{Binding TargetZoomLevel, ElementName=map}"
+                    SmallChange="0.1"
+                    TickPlacement="BottomRight"/>
+
+            <Button Margin="2" Padding="8" ToolTip.Tip="Reset Heading" Click="ResetHeadingButtonClick"
+                    FontSize="20" FontFamily="Segoe MDL2 Assets" Content="&#xEBE6;">
+                <Button.IsVisible>
+                    <Binding Path="Heading" ElementName="map">
+                        <Binding.Converter>
+                            <local:HeadingToVisibilityConverter/>
+                        </Binding.Converter>
+                    </Binding>
+                </Button.IsVisible>
+            </Button>
+        </StackPanel>
+    </Grid>
 </Window>

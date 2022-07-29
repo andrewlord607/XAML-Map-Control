@@ -47,33 +47,69 @@ namespace MapControl
                 nameof(TileSource));
 #endif
 
+#if !Avalonia
         public static readonly DependencyProperty SourceNameProperty = DependencyProperty.Register(
             nameof(SourceName), typeof(string), typeof(MapTileLayerBase), new PropertyMetadata(null));
+#else
+        public static readonly AvaloniaProperty<string> SourceNameProperty = AvaloniaProperty.Register<MapTileLayerBase, string>(
+            nameof(SourceName));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(
             nameof(Description), typeof(string), typeof(MapTileLayerBase), new PropertyMetadata(null));
+#else
+        public static readonly AvaloniaProperty<string> DescriptionProperty = AvaloniaProperty.Register<MapTileLayerBase, string>(
+            nameof(Description));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty MaxBackgroundLevelsProperty = DependencyProperty.Register(
             nameof(MaxBackgroundLevels), typeof(int), typeof(MapTileLayerBase), new PropertyMetadata(8));
+#else
+        public static readonly AvaloniaProperty<int> MaxBackgroundLevelsProperty = AvaloniaProperty.Register<MapTileLayerBase, int>(
+            nameof(MaxBackgroundLevels), 8);
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty UpdateIntervalProperty = DependencyProperty.Register(
             nameof(UpdateInterval), typeof(TimeSpan), typeof(MapTileLayerBase),
             new PropertyMetadata(TimeSpan.FromSeconds(0.2), (o, e) => ((MapTileLayerBase)o).updateTimer.Interval = (TimeSpan)e.NewValue));
+#else
+        public static readonly AvaloniaProperty<TimeSpan> UpdateIntervalProperty = AvaloniaProperty.Register<MapTileLayerBase, TimeSpan>(
+            nameof(UpdateInterval), TimeSpan.FromSeconds(0.2));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty UpdateWhileViewportChangingProperty = DependencyProperty.Register(
             nameof(UpdateWhileViewportChanging), typeof(bool), typeof(MapTileLayerBase), new PropertyMetadata(false));
+#else
+        public static readonly AvaloniaProperty<bool> UpdateWhileViewportChangingProperty = AvaloniaProperty.Register<MapTileLayerBase, bool>(
+            nameof(UpdateWhileViewportChanging));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty MapBackgroundProperty = DependencyProperty.Register(
             nameof(MapBackground), typeof(Brush), typeof(MapTileLayerBase), new PropertyMetadata(null));
+#else
+        public static readonly StyledProperty<IBrush> MapBackgroundProperty = AvaloniaProperty.Register<MapTileLayerBase, IBrush>(
+            nameof(MapBackground));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty MapForegroundProperty = DependencyProperty.Register(
             nameof(MapForeground), typeof(Brush), typeof(MapTileLayerBase), new PropertyMetadata(null));
+#else
+        public static readonly StyledProperty<IBrush> MapForegroundProperty = AvaloniaProperty.Register<MapTileLayerBase, IBrush>(
+            nameof(MapForeground));
+#endif
 
 
 #if Avalonia
         static MapTileLayerBase()
         {
             TileSourceProperty.Changed.AddClassHandler<MapTileLayerBase>(async (o, e) => await o.Update());
+            UpdateIntervalProperty.Changed.AddClassHandler<MapTileLayerBase>((o, e) => o.updateTimer.Interval = (TimeSpan)e.NewValue);
         }
 #endif
 
@@ -157,18 +193,34 @@ namespace MapControl
         /// <summary>
         /// Optional background brush. Sets MapBase.Background if not null and this layer is the base map layer.
         /// </summary>
+#if !Avalonia
         public Brush MapBackground
+#else
+        public IBrush MapBackground
+#endif
         {
+#if !Avalonia
             get { return (Brush)GetValue(MapBackgroundProperty); }
+#else
+            get { return GetValue(MapBackgroundProperty); }
+#endif
             set { SetValue(MapBackgroundProperty, value); }
         }
 
         /// <summary>
         /// Optional foreground brush. Sets MapBase.Foreground if not null and this layer is the base map layer.
         /// </summary>
+#if !Avalonia
         public Brush MapForeground
+#else
+        public IBrush MapForeground
+#endif
         {
+#if !Avalonia
             get { return (Brush)GetValue(MapForegroundProperty); }
+#else
+            get { return GetValue(MapForegroundProperty); }
+#endif
             set { SetValue(MapForegroundProperty, value); }
         }
 

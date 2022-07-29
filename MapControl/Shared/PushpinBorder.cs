@@ -38,8 +38,13 @@ namespace MapControl
 
         protected virtual Geometry BuildGeometry()
         {
+#if !Avalonia
             var width = Math.Floor(RenderSize.Width);
             var height = Math.Floor(RenderSize.Height);
+#else
+            var width = Math.Floor(Bounds.Width);
+            var height = Math.Floor(Bounds.Height);
+#endif
             var x1 = BorderWidth / 2d;
             var y1 = BorderWidth / 2d;
             var x2 = width - x1;

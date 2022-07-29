@@ -15,6 +15,7 @@ using Windows.Foundation;
 using Windows.UI.Xaml;
 #elif Avalonia
 using Avalonia;
+using Avalonia.Interactivity;
 #else
 using System.Windows;
 #endif
@@ -26,12 +27,29 @@ namespace MapControl
     /// </summary>
     public class WmtsTileLayer : MapTileLayerBase
     {
+#if !Avalonia
         public static readonly DependencyProperty CapabilitiesUriProperty = DependencyProperty.Register(
             nameof(CapabilitiesUri), typeof(Uri), typeof(WmtsTileLayer),
             new PropertyMetadata(null, (o, e) => ((WmtsTileLayer)o).TileMatrixSets.Clear()));
+#else
+        public static readonly AvaloniaProperty<Uri> CapabilitiesUriProperty = AvaloniaProperty.Register<WmtsTileLayer, Uri>(
+            nameof(CapabilitiesUri));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty LayerIdentifierProperty = DependencyProperty.Register(
             nameof(LayerIdentifier), typeof(string), typeof(WmtsTileLayer), new PropertyMetadata(null));
+#else
+        public static readonly AvaloniaProperty<string> LayerIdentifierProperty = AvaloniaProperty.Register<WmtsTileLayer, string>(
+            nameof(LayerIdentifier));
+#endif
+
+#if Avalonia
+        static WmtsTileLayer()
+        {
+            CapabilitiesUriProperty.Changed.AddClassHandler<WmtsTileLayer>((o, e) => o.TileMatrixSets.Clear());
+        }
+#endif
 
         public WmtsTileLayer()
             : this(new TileImageLoader())
@@ -41,7 +59,11 @@ namespace MapControl
         public WmtsTileLayer(ITileImageLoader tileImageLoader)
             : base(tileImageLoader)
         {
+#if !Avalonia
             Loaded += OnLoaded;
+#else
+            AttachedToVisualTree += OnLoaded;
+#endif
         }
 
         /// <summary>
@@ -151,7 +173,11 @@ namespace MapControl
                     layersChanged = true;
                 }
 
+#if !Avalonia
                 if (layer.SetBounds(ParentMap.ViewTransform, ParentMap.RenderSize))
+#else
+                if (layer.SetBounds(ParentMap.ViewTransform, ParentMap.Bounds.Size))
+#endif
                 {
                     layersChanged = true;
                 }
@@ -191,7 +217,11 @@ namespace MapControl
             return TileImageLoader.LoadTiles(tiles, TileSource, cacheName);
         }
 
+#if !Avalonia
         private async void OnLoaded(object sender, RoutedEventArgs e)
+#else
+        private async void OnLoaded(object sender, VisualTreeAttachmentEventArgs e)
+#endif
         {
             if (TileMatrixSets.Count == 0 && CapabilitiesUri != null)
             {

@@ -16,6 +16,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 #elif Avalonia
 using Avalonia;
+using Avalonia.Media;
 #else
 using System.Windows;
 using System.Windows.Media;
@@ -49,14 +50,29 @@ namespace MapControl
             }
         }
 
+#if !Avalonia
         public static readonly DependencyProperty MinZoomLevelProperty = DependencyProperty.Register(
             nameof(MinZoomLevel), typeof(int), typeof(MapTileLayer), new PropertyMetadata(0));
+#else
+        public static readonly AvaloniaProperty<int> MinZoomLevelProperty = AvaloniaProperty.Register<MapTileLayer, int>(
+            nameof(MinZoomLevel));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty MaxZoomLevelProperty = DependencyProperty.Register(
             nameof(MaxZoomLevel), typeof(int), typeof(MapTileLayer), new PropertyMetadata(19));
+#else
+        public static readonly AvaloniaProperty<int> MaxZoomLevelProperty = AvaloniaProperty.Register<MapTileLayer, int>(
+            nameof(MaxZoomLevel), 19);
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty ZoomLevelOffsetProperty = DependencyProperty.Register(
             nameof(ZoomLevelOffset), typeof(double), typeof(MapTileLayer), new PropertyMetadata(0d));
+#else
+        public static readonly AvaloniaProperty<double> ZoomLevelOffsetProperty = AvaloniaProperty.Register<MapTileLayer, double>(
+            nameof(ZoomLevelOffset));
+#endif
 
         public MapTileLayer()
             : this(new TileImageLoader())
@@ -188,7 +204,11 @@ namespace MapControl
 
             // bounds in tile pixels from view size
             //
+#if !Avalonia
             var bounds = ParentMap.ViewTransform.GetTileMatrixBounds(tileMatrixScale, MapTopLeft, ParentMap.RenderSize);
+#else
+            var bounds = ParentMap.ViewTransform.GetTileMatrixBounds(tileMatrixScale, MapTopLeft, ParentMap.Bounds.Size);
+#endif
 
             // tile column and row index bounds
             //

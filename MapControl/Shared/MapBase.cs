@@ -20,6 +20,7 @@ using Avalonia.Media;
 using Avalonia.Controls;
 using Avalonia.Animation.Easings;
 using Avalonia.Animation;
+using Avalonia.Animation.Animators;
 using Avalonia.Styling;
 #else
 using System.Windows;
@@ -31,8 +32,13 @@ namespace MapControl
 {
     public interface IMapLayer : IMapElement
     {
+#if !Avalonia
         Brush MapBackground { get; }
         Brush MapForeground { get; }
+#else
+        IBrush MapBackground { get; }
+        IBrush MapForeground { get; }
+#endif
     }
 
     /// <summary>
@@ -158,7 +164,7 @@ namespace MapControl
         }
 #endif
 
-#if!Avalonia
+#if !Avalonia
         private PointAnimation centerAnimation;
         private DoubleAnimation zoomLevelAnimation;
         private DoubleAnimation headingAnimation;
@@ -181,9 +187,17 @@ namespace MapControl
         /// <summary>
         /// Gets or sets the map foreground Brush.
         /// </summary>
+#if !Avalonia
         public Brush Foreground
+#else
+        public IBrush Foreground
+#endif
         {
+#if !Avalonia
             get { return (Brush)GetValue(ForegroundProperty); }
+#else
+            get { return GetValue(ForegroundProperty); }
+#endif
             set { SetValue(ForegroundProperty, value); }
         }
 
@@ -506,7 +520,7 @@ namespace MapControl
 
             if (targetCenter != null)
             {
-#if  !Avalonia
+#if !Avalonia
                 var scale = Math.Min(RenderSize.Width / rect.Width, RenderSize.Height / rect.Height);
 
 #else
@@ -679,12 +693,12 @@ namespace MapControl
                             new KeyFrame
                             {
                                 KeyTime = TimeSpan.Zero,
-                                Setters = { new Setter {Property = CenterProperty, Value = new Point(Center.Longitude, Center.Latitude)} }
+                                Setters = { new Setter {Property = CenterPointProperty, Value = new Point(Center.Longitude, Center.Latitude)} }
                             },
                             new KeyFrame
                             {
                                 KeyTime = AnimationDuration,
-                                Setters = { new Setter {Property = CenterProperty, Value = new Point(ConstrainedLongitude(targetCenter.Longitude), targetCenter.Latitude)} }
+                                Setters = { new Setter {Property = CenterPointProperty, Value = new Point(ConstrainedLongitude(targetCenter.Longitude), targetCenter.Latitude)} }
                             }
                         }
                     };

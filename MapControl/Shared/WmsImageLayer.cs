@@ -16,6 +16,10 @@ using Microsoft.UI.Xaml.Media;
 using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
+#elif Avalonia
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 #else
 using System.Windows;
 using System.Windows.Media;
@@ -28,21 +32,49 @@ namespace MapControl
     /// </summary>
     public partial class WmsImageLayer : MapImageLayer
     {
+#if !Avalonia
         public static readonly DependencyProperty ServiceUriProperty = DependencyProperty.Register(
             nameof(ServiceUri), typeof(Uri), typeof(WmsImageLayer),
             new PropertyMetadata(null, async (o, e) => await ((WmsImageLayer)o).UpdateImageAsync()));
+#else
+        public static readonly AvaloniaProperty<Uri> ServiceUriProperty = AvaloniaProperty.Register<WmsImageLayer, Uri>(
+            nameof(ServiceUri));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty LayersProperty = DependencyProperty.Register(
             nameof(Layers), typeof(string), typeof(WmsImageLayer),
             new PropertyMetadata(null, async (o, e) => await ((WmsImageLayer)o).UpdateImageAsync()));
+#else
+        public static readonly AvaloniaProperty<string> LayersProperty = AvaloniaProperty.Register<WmsImageLayer, string>(
+            nameof(Layers));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty StylesProperty = DependencyProperty.Register(
             nameof(Styles), typeof(string), typeof(WmsImageLayer),
             new PropertyMetadata(string.Empty, async (o, e) => await ((WmsImageLayer)o).UpdateImageAsync()));
+#else
+        public static readonly AvaloniaProperty<string> StylesProperty = AvaloniaProperty.Register<WmsImageLayer, string>(
+            nameof(Styles), string.Empty);
+#endif
+
+#if Avalonia
+        static WmsImageLayer()
+        {
+            ServiceUriProperty.Changed.AddClassHandler<WmsImageLayer>(async (o, e) => await o.UpdateImageAsync());
+            LayersProperty.Changed.AddClassHandler<WmsImageLayer>(async (o, e) => await o.UpdateImageAsync());
+            StylesProperty.Changed.AddClassHandler<WmsImageLayer>(async (o, e) => await o.UpdateImageAsync());
+        }
+#endif
 
         public WmsImageLayer()
         {
+#if !Avalonia
             foreach (FrameworkElement child in Children)
+#else
+            foreach (Control child in Children)
+#endif
             {
                 child.UseLayoutRounding = true;
             }
@@ -187,9 +219,17 @@ namespace MapControl
         /// <summary>
         /// Loads an ImageSource from the URL returned by GetMapRequestUri().
         /// </summary>
+#if !Avalonia
         protected override async Task<ImageSource> GetImageAsync()
+#else
+        protected override async Task<IImage> GetImageAsync()
+#endif
         {
+#if !Avalonia
             ImageSource image = null;
+#else
+            IImage image = null;
+#endif
 
             if (ServiceUri != null)
             {
@@ -288,7 +328,11 @@ namespace MapControl
 
                 var mapRect = projection.BoundingBoxToRect(BoundingBox);
                 var viewRect = GetViewRect(mapRect);
+#if !Avalonia
                 var viewSize = ParentMap.RenderSize;
+#else
+                var viewSize = ParentMap.Bounds;
+#endif
 
                 var transform = new Matrix(1, 0, 0, 1, -viewSize.Width / 2, -viewSize.Height / 2);
                 transform.Rotate(-viewRect.Rotation);

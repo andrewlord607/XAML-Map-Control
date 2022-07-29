@@ -43,24 +43,54 @@ namespace MapControl
     /// </summary>
     public abstract class MapImageLayer : MapPanel, IMapLayer
     {
+#if !Avalonia
         public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(
             nameof(Description), typeof(string), typeof(MapImageLayer), new PropertyMetadata(null));
+#else
+        public static readonly AvaloniaProperty<string> DescriptionProperty = AvaloniaProperty.Register<MapImageLayer, string>(
+            nameof(Description));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty RelativeImageSizeProperty = DependencyProperty.Register(
             nameof(RelativeImageSize), typeof(double), typeof(MapImageLayer), new PropertyMetadata(1d));
+#else
+        public static readonly AvaloniaProperty<double> RelativeImageSizeProperty = AvaloniaProperty.Register<MapImageLayer, double>(
+            nameof(RelativeImageSize), 1d);
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty UpdateIntervalProperty = DependencyProperty.Register(
             nameof(UpdateInterval), typeof(TimeSpan), typeof(MapImageLayer),
             new PropertyMetadata(TimeSpan.FromSeconds(0.2), (o, e) => ((MapImageLayer)o).updateTimer.Interval = (TimeSpan)e.NewValue));
+#else
+        public static readonly AvaloniaProperty<TimeSpan> UpdateIntervalProperty = AvaloniaProperty.Register<MapImageLayer, TimeSpan>(
+            nameof(UpdateInterval), TimeSpan.FromSeconds(0.2));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty UpdateWhileViewportChangingProperty = DependencyProperty.Register(
             nameof(UpdateWhileViewportChanging), typeof(bool), typeof(MapImageLayer), new PropertyMetadata(false));
+#else
+        public static readonly AvaloniaProperty<bool> UpdateWhileViewportChangingProperty = AvaloniaProperty.Register<MapImageLayer, bool>(
+            nameof(UpdateWhileViewportChanging), false);
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty MapBackgroundProperty = DependencyProperty.Register(
             nameof(MapBackground), typeof(Brush), typeof(MapImageLayer), new PropertyMetadata(null));
+#else
+        public static readonly StyledProperty<IBrush> MapBackgroundProperty = AvaloniaProperty.Register<MapImageLayer, IBrush>(
+            nameof(MapBackground));
+#endif
 
+#if !Avalonia
         public static readonly DependencyProperty MapForegroundProperty = DependencyProperty.Register(
             nameof(MapForeground), typeof(Brush), typeof(MapImageLayer), new PropertyMetadata(null));
+#else
+        public static readonly StyledProperty<IBrush> MapForegroundProperty = AvaloniaProperty.Register<MapImageLayer, IBrush>(
+            nameof(MapForeground));
+#endif
 
 #if WINUI
         private readonly DispatcherQueueTimer updateTimer;
@@ -68,6 +98,13 @@ namespace MapControl
         private readonly DispatcherTimer updateTimer;
 #endif
         private bool updateInProgress;
+
+#if Avalonia
+        static MapImageLayer()
+        {
+            UpdateIntervalProperty.Changed.AddClassHandler<MapImageLayer>((o, e) => o.updateTimer.Interval = (TimeSpan)e.NewValue);
+        }
+#endif
 
         public MapImageLayer()
         {
@@ -116,18 +153,34 @@ namespace MapControl
         /// <summary>
         /// Optional background brush. Sets MapBase.Background if not null and this layer is the base map layer.
         /// </summary>
+#if !Avalonia
         public Brush MapBackground
+#else
+        public IBrush MapBackground
+#endif
         {
+#if !Avalonia
             get { return (Brush)GetValue(MapBackgroundProperty); }
+#else
+            get { return (Brush)GetValue(MapBackgroundProperty); }
+#endif
             set { SetValue(MapBackgroundProperty, value); }
         }
 
         /// <summary>
         /// Optional foreground brush. Sets MapBase.Foreground if not null and this layer is the base map layer.
         /// </summary>
+#if !Avalonia
         public Brush MapForeground
+#else
+        public IBrush MapForeground
+#endif
         {
+#if !Avalonia
             get { return (Brush)GetValue(MapForegroundProperty); }
+#else
+            get { return GetValue(MapForegroundProperty); }
+#endif
             set { SetValue(MapForegroundProperty, value); }
         }
 

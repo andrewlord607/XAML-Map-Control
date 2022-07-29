@@ -10,6 +10,9 @@ using Microsoft.UI.Xaml.Media;
 #elif UWP
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
+#elif Avalonia
+using Avalonia;
+using Avalonia.Media;
 #else
 using System.Windows;
 using System.Windows.Media;
@@ -22,9 +25,22 @@ namespace MapControl
     /// </summary>
     public class MapPolygon : MapPath
     {
+#if !Avalonia
         public static readonly DependencyProperty LocationsProperty = DependencyProperty.Register(
             nameof(Locations), typeof(IEnumerable<Location>), typeof(MapPolygon),
             new PropertyMetadata(null, (o, e) => ((MapPolygon)o).DataCollectionPropertyChanged(e)));
+#else
+        public static readonly AvaloniaProperty<IEnumerable<Location>> LocationsProperty = AvaloniaProperty.Register<MapPolygon, IEnumerable<Location>>(
+            nameof(Locations));
+#endif
+
+#if Avalonia
+        static MapPolygon()
+        {
+            LocationsProperty.Changed.AddClassHandler<MapPolygon>((o, e) =>
+                o.DataCollectionPropertyChanged(e));
+        }
+#endif
 
         /// <summary>
         /// Gets or sets the Locations that define the polygon points.

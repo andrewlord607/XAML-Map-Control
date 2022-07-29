@@ -18,6 +18,10 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Shapes;
 #elif Avalonia
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
+using Avalonia.Media;
+using Avalonia.Layout;
 #else
 using System.Windows;
 using System.Windows.Controls;
@@ -32,8 +36,13 @@ namespace MapControl
     /// </summary>
     public class MapScale : MapOverlay
     {
+#if !Avalonia
         public static readonly DependencyProperty PaddingProperty = DependencyProperty.Register(
             nameof(Padding), typeof(Thickness), typeof(MapScale), new PropertyMetadata(new Thickness(4)));
+#else
+        public static readonly AvaloniaProperty<Thickness> PaddingProperty = AvaloniaProperty.Register<MapScale, Thickness>(
+            nameof(Padding),new Thickness(4));
+#endif
 
         private readonly Polyline line = new Polyline();
 
@@ -55,8 +64,13 @@ namespace MapControl
         {
             base.SetParentMap(map);
 
+#if !Avalonia
             line.SetBinding(Shape.StrokeProperty, this.GetOrCreateBinding(StrokeProperty, nameof(Stroke)));
             line.SetBinding(Shape.StrokeThicknessProperty, this.GetOrCreateBinding(StrokeThicknessProperty, nameof(StrokeThickness)));
+#else
+            line.Bind(Shape.StrokeProperty, this.GetBindingObservable(StrokeProperty));
+            line.Bind(Shape.StrokeThicknessProperty, this.GetBindingObservable(StrokeThicknessProperty));
+#endif
 #if WINUI || UWP
             label.SetBinding(TextBlock.ForegroundProperty, this.GetOrCreateBinding(ForegroundProperty, nameof(Foreground)));
 #endif
@@ -82,15 +96,24 @@ namespace MapControl
                        : length / magnitude < 5d ? 5d * magnitude
                        : 10d * magnitude;
 
+#if !Avalonia
                 size.Width = length * scale + StrokeThickness + Padding.Left + Padding.Right;
                 size.Height = 1.25 * FontSize + StrokeThickness + Padding.Top + Padding.Bottom;
+#else
+                size = size.WithWidth(length * scale + StrokeThickness + Padding.Left + Padding.Right);
+                size = size.WithHeight(1.25 * FontSize + StrokeThickness + Padding.Top + Padding.Bottom);
+#endif
 
                 var x1 = Padding.Left + StrokeThickness / 2d;
                 var x2 = size.Width - Padding.Right - StrokeThickness / 2d;
                 var y1 = size.Height / 2d;
                 var y2 = size.Height - Padding.Bottom - StrokeThickness / 2d;
 
+#if !Avalonia
                 line.Points = new PointCollection
+#else
+                line.Points = new Points
+#endif
                 {
                     new Point(x1, y1),
                     new Point(x1, y2),

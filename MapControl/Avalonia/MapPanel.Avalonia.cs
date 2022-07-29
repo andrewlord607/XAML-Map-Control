@@ -43,5 +43,21 @@ namespace MapControl
         {
             element.SetValue(ViewPositionProperty, viewPosition);
         }
+
+        public static void InitMapElement(Control element)
+        {
+            if (element is MapBase)
+            {
+                element.SetValue(ParentMapProperty, element);
+            }
+            else
+            {
+                // Workaround for missing property value inheritance.
+                // Loaded and Unloaded handlers set and clear the ParentMap property value.
+
+                element.AttachedToVisualTree += (s, e) => GetParentMap(element); //TODO: LOADED
+                element.DetachedFromVisualTree += (s, e) => element.ClearValue(ParentMapProperty); //TODO: UnLOADED
+            }
+        }
     }
 }

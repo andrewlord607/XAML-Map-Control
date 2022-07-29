@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml.Media;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 #elif Avalonia
+using Avalonia;
 using Avalonia.Media;
 #else
 using System.Windows;
@@ -24,9 +25,22 @@ namespace MapControl
     /// </summary>
     public class MapPolyline : MapPath
     {
+#if !Avalonia
         public static readonly DependencyProperty LocationsProperty = DependencyProperty.Register(
             nameof(Locations), typeof(IEnumerable<Location>), typeof(MapPolyline),
             new PropertyMetadata(null, (o, e) => ((MapPolyline)o).DataCollectionPropertyChanged(e)));
+#else
+        public static readonly AvaloniaProperty<IEnumerable<Location>> LocationsProperty = AvaloniaProperty.Register<MapPolyline, IEnumerable<Location>>(
+            nameof(Locations));
+#endif
+
+#if Avalonia
+        static MapPolyline()
+        {
+            LocationsProperty.Changed.AddClassHandler<MapPolyline>((o, e) =>
+                o.DataCollectionPropertyChanged(e));
+        }
+#endif
 
         /// <summary>
         /// Gets or sets the Locations that define the polyline points.

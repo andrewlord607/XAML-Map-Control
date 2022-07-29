@@ -24,9 +24,21 @@ namespace MapControl
     /// </summary>
     public partial class MapPath : IMapElement
     {
+#if !Avalonia
         public static readonly DependencyProperty LocationProperty = DependencyProperty.Register(
             nameof(Location), typeof(Location), typeof(MapPath),
             new PropertyMetadata(null, (o, e) => ((MapPath)o).UpdateData()));
+#else
+        public static readonly AvaloniaProperty<Location> LocationProperty = AvaloniaProperty.Register<MapPath, Location>(
+            nameof(Location));
+#endif
+
+#if Avalonia
+        static MapPath()
+        {
+            LocationProperty.Changed.AddClassHandler<MapPath>((o, e) => o.UpdateData());
+        }
+#endif
 
         private MapBase parentMap;
 
@@ -94,8 +106,13 @@ namespace MapControl
             {
                 var pos = parentMap.LocationToView(location);
 
+#if !Avalonia
                 if (pos.X < 0d || pos.X > parentMap.RenderSize.Width ||
                     pos.Y < 0d || pos.Y > parentMap.RenderSize.Height)
+#else
+                if (pos.X < 0d || pos.X > parentMap.Bounds.Width ||
+                    pos.Y < 0d || pos.Y > parentMap.Bounds.Height)
+#endif
                 {
                     longitudeOffset = parentMap.ConstrainedLongitude(location.Longitude) - location.Longitude;
                 }
@@ -115,11 +132,19 @@ namespace MapControl
 
             if (point.Y == double.PositiveInfinity)
             {
+#if !Avalonia
                 point.Y = 1e9;
+#else
+                point = point.WithY(1e9);
+#endif
             }
             else if (point.X == double.NegativeInfinity)
             {
+#if !Avalonia
                 point.Y = -1e9;
+#else
+                point = point.WithY(-1e9);
+#endif
             }
 
             return point;
@@ -130,6 +155,6 @@ namespace MapControl
             return parentMap.ViewTransform.MapToView(LocationToMap(location, longitudeOffset));
         }
 
-        #endregion
+#endregion
     }
 }

@@ -44,7 +44,7 @@ namespace MapControl
 #if !Avalonia
             Loaded += OnLoaded;
 #else
-            Initialized += OnLoaded;
+            AttachedToVisualTree += OnLoaded; //TODO: LOADED
 #endif
         }
 
@@ -63,7 +63,7 @@ namespace MapControl
 #if !Avalonia
             Loaded -= OnLoaded;
 #else
-            Initialized -= OnLoaded;
+            AttachedToVisualTree -= OnLoaded; //TODO: LOADED
 #endif
 
             if (!string.IsNullOrEmpty(ApiKey))
