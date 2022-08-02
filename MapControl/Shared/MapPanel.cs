@@ -503,10 +503,14 @@ namespace MapControl
 #if !Avalonia
         private static void ParentMapPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
 #else
-        private static void ParentMapPropertyChanged(MapPanel obj, AvaloniaPropertyChangedEventArgs e)
+        private static void ParentMapPropertyChanged(AvaloniaPropertyChangedEventArgs e)
 #endif
         {
+#if !Avalonia
             if (obj is IMapElement mapElement)
+#else
+            if (e.Sender is IMapElement mapElement)
+#endif
             {
                 mapElement.ParentMap = e.NewValue as MapBase;
             }

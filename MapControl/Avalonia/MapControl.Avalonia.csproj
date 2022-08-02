@@ -36,4 +36,12 @@
         <PackageReference Include="System.Runtime.Caching" Version="6.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Themes\Generic.xaml">
+        <Generator>MSBuild:Compile</Generator>
+      </None>
+    </ItemGroup>
+<ItemGroup>
+  <AvaloniaResource Include="Themes\**" />
+</ItemGroup>
 </Project>

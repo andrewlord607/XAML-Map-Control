@@ -1,6 +1,9 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using System;
+using Avalonia.LogicalTree;
+using Avalonia.VisualTree;
 
 namespace MapControl
 {
@@ -12,19 +15,17 @@ namespace MapControl
         public static readonly AvaloniaProperty<BoundingBox> BoundingBoxProperty = AvaloniaProperty.RegisterAttached<MapPanel, BoundingBox>(
             "BoundingBox", typeof(MapPanel));
 
-        private static readonly AvaloniaProperty<MapBase> ParentMapProperty = AvaloniaProperty.RegisterAttached<MapPanel, MapBase>(
+        private static readonly StyledProperty<MapBase> ParentMapProperty = AvaloniaProperty.RegisterAttached<MapPanel, MapBase>(
             "ParentMap", typeof(MapPanel), null, true, BindingMode.Default);
 
         private static readonly AvaloniaProperty<Point?> ViewPositionProperty = AvaloniaProperty.RegisterAttached<MapPanel, Point?>(
             "ViewPosition", typeof(MapPanel));
 
-#if Avalonia
         static MapPanel()
         {
             AffectsArrange<MapPanel>(LocationProperty, BoundingBoxProperty);
-            ParentMapProperty.Changed.AddClassHandler<MapPanel>(ParentMapPropertyChanged);
+            ParentMapProperty.Changed.Subscribe(ParentMapPropertyChanged);
         }
-#endif
 
         public MapPanel()
         {
@@ -34,9 +35,23 @@ namespace MapControl
             }
         }
 
-        public static MapBase GetParentMap(Control element)
+        public static MapBase GetParentMap(Control element, LogicalTreeAttachmentEventArgs e)
         {
-            return (MapBase)element.GetValue(ParentMapProperty);
+            var parentMap = element.GetValue(ParentMapProperty);
+
+            if (parentMap == null && (parentMap = FindParentMap(element, e.Parent)) != null)
+            {
+                element.SetValue(ParentMapProperty, parentMap);
+            }
+
+            return parentMap;
+        }
+
+        private static MapBase FindParentMap(IAvaloniaObject element, ILogical visualParent)
+        {
+            return visualParent is Control parent
+                ? ((parent as MapBase) ?? element.GetValue(ParentMapProperty) ?? FindParentMap(parent, visualParent.LogicalParent))
+                : null;
         }
 
         private static void SetViewPosition(Control element, Point? viewPosition)
@@ -55,8 +70,8 @@ namespace MapControl
                 // Workaround for missing property value inheritance.
                 // Loaded and Unloaded handlers set and clear the ParentMap property value.
 
-                element.AttachedToVisualTree += (s, e) => GetParentMap(element); //TODO: LOADED
-                element.DetachedFromVisualTree += (s, e) => element.ClearValue(ParentMapProperty); //TODO: UnLOADED
+                element.AttachedToLogicalTree += (s, e) => GetParentMap(element, e); //TODO: LOADED
+                element.DetachedFromLogicalTree += (s, e) => element.ClearValue(ParentMapProperty); //TODO: UnLOADED
             }
         }
     }

@@ -22,6 +22,9 @@ namespace MapControl
         public static readonly AvaloniaProperty<CornerRadius> CornerRadiusProperty = AvaloniaProperty.Register<PushpinBorder, CornerRadius>(
             nameof(CornerRadius));
 
+        public static readonly AvaloniaProperty<Thickness> PaddingProperty = AvaloniaProperty.Register<PushpinBorder, Thickness>(
+            nameof(Padding), new Thickness(2));
+
         static PushpinBorder()
         {
             AffectsMeasure<PushpinBorder>(
@@ -38,8 +41,6 @@ namespace MapControl
                 BorderBrushProperty,
                 CornerRadiusProperty,
                 PaddingProperty);
-
-            PaddingProperty.OverrideDefaultValue<PushpinBorder>(new Thickness(2));
         }
 
         public Brush Background

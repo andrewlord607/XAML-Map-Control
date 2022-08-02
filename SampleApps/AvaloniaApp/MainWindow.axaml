@@ -26,9 +26,7 @@
                  Center="53.5,8.2"
                  PointerPressed="MapMouseButtonDown"
                  PointerMoved="MapMouseMove"
-                 PointerLeave="MapMouseLeave"
-                 Width="1000"
-                 Height="1000">
+                 PointerLeave="MapMouseLeave">
             <map:MapItemsControl Items="{Binding Polylines}" />
 
             <map:MapItemsControl Items="{Binding Points}"
